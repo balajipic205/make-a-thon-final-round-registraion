@@ -59,9 +59,7 @@ export const step5Schema = z.object({
   payment_bank_name: z.string().min(2).max(80),
   payment_mobile_number: z.string().regex(phoneRe, "Enter valid 10-digit Indian mobile"),
   payment_account_holder_name: z.string().min(2).max(80).regex(lettersRe, "Letters only"),
-  payment_amount_confirmed: z.literal(true, {
-    errorMap: () => ({ message: "You must confirm the payment" }),
-  }),
+  payment_amount_confirmed: z.literal(true, { message: "You must confirm the payment" }),
 });
 
 export const authRegisterSchema = z
