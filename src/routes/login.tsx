@@ -35,12 +35,15 @@ function LoginPage() {
     setLockMsg(null);
     setSubmitting(true);
     try {
-      // 1) Pre-check lockout for this email (admin lockout applies to anyone
-      //    who has been failing — final enforcement is on the role check below).
+      // 1) Pre-check lockout for this email
       const lock = await supabase.rpc("check_admin_lockout", { p_email: v.email });
-      if (lock.data?.locked) {
+      if ((lock.data as any)?.locked) {
+        const unlockAt = (lock.data as any).unlock_at;
+        const mins = unlockAt
+          ? Math.max(1, Math.ceil((new Date(unlockAt).getTime() - Date.now()) / 60000))
+          : 120;
         setLockMsg(
-          `Too many failed attempts. Try again in ~${lock.data.retry_after_minutes} minutes.`,
+          `Too many failed attempts. Try again in ~${mins} minutes.`,
         );
         setSubmitting(false);
         return;
@@ -53,17 +56,13 @@ function LoginPage() {
       });
 
       if (error || !data.session) {
-        // Record failed attempt (used for the lockout window)
-        await supabase.rpc("record_admin_login_attempt", {
-          p_email: v.email,
-          p_success: false,
-        });
+        await supabase.rpc("log_admin_attempt", { p_email: v.email, p_success: false });
         setServerError(error?.message ?? "Invalid credentials");
         setSubmitting(false);
         return;
       }
 
-      // 3) Look up role to decide where to send the user
+      // 3) Look up role
       const { data: adminRole } = await supabase
         .from("user_roles")
         .select("role")
@@ -71,17 +70,23 @@ function LoginPage() {
         .eq("role", "admin")
         .maybeSingle();
 
-      // Record success (clears the lockout streak for admins)
-      await supabase.rpc("record_admin_login_attempt", {
-        p_email: v.email,
-        p_success: true,
-      });
+      await supabase.rpc("log_admin_attempt", { p_email: v.email, p_success: true });
 
       setSubmitting(false);
       if (adminRole?.role === "admin") {
         navigate({ to: "/admin/dashboard" });
       } else {
-        navigate({ to: "/register-team" });
+        // Check if already submitted -> success page
+        const { data: existing } = await supabase
+          .from("teams")
+          .select("id")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+        if (existing) {
+          navigate({ to: "/my-team" });
+        } else {
+          navigate({ to: "/register-team" });
+        }
       }
     } catch (e) {
       setSubmitting(false);

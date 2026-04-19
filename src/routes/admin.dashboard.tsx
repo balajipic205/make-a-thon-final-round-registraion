@@ -1,8 +1,9 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, redirect, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
+import { Search, LogOut, LayoutDashboard, Download } from "lucide-react";
 import {
   PieChart,
   Pie,
@@ -49,9 +50,13 @@ type Team = {
 const COLORS = ["#00F5FF", "#FFB800", "#A78BFA", "#34D399"];
 
 function AdminDashboard() {
+  const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const PAGE = 15;
 
   useEffect(() => {
@@ -64,6 +69,25 @@ function AdminDashboard() {
         setLoading(false);
       });
   }, []);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return teams.filter((t) => {
+      if (statusFilter !== "all" && t.submission_status !== statusFilter) return false;
+      if (categoryFilter !== "all" && t.category !== categoryFilter) return false;
+      if (!q) return true;
+      return (
+        t.team_name.toLowerCase().includes(q) ||
+        t.reference_id.toLowerCase().includes(q) ||
+        String(t.team_number).padStart(2, "0").includes(q)
+      );
+    });
+  }, [teams, search, statusFilter, categoryFilter]);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/login" });
+  };
 
   const total = teams.length;
   const byCategory = ["Hardware", "Software", "Industry Problem Statement"].map((c) => ({
@@ -99,7 +123,7 @@ function AdminDashboard() {
     const { data } = await supabase
       .from("teams")
       .select(
-        "*,members(unique_member_id,member_order,full_name,department,year_of_study,phone_number,whatsapp_number,college_email,personal_email,registration_number)",
+        "*,members(unique_member_id,member_order,full_name,department,year_of_study,phone_number,whatsapp_number,college_email,personal_email,registration_number,photo_url)",
       )
       .order("team_number", { ascending: true });
     if (!data) return;
@@ -108,24 +132,35 @@ function AdminDashboard() {
         "team_number", "reference_id", "team_name", "team_size", "is_svce", "college_name",
         "category", "problem_id", "problem_name", "company",
         "mentor_name", "mentor_email", "mentor_phone",
-        "payment_txn", "payment_bank", "payment_mobile", "payment_holder",
+        "payment_txn", "payment_bank", "payment_mobile", "payment_holder", "payment_screenshot_url",
         "submission_status", "submitted_at",
         "member_order", "unique_member_id", "member_name", "department", "year",
-        "phone", "whatsapp", "college_email", "personal_email", "reg_no",
+        "phone", "whatsapp", "college_email", "personal_email", "reg_no", "photo_view_url",
       ],
     ];
     for (const t of data) {
       const ms: any[] = (t as any).members || [];
       ms.sort((a, b) => a.member_order - b.member_order);
+      // Sign URLs (long expiry — 7 days for CSV export convenience)
+      const ssSigned = t.payment_screenshot_url
+        ? (await supabase.storage
+            .from("payment-screenshots")
+            .createSignedUrl(t.payment_screenshot_url, 60 * 60 * 24 * 7)).data?.signedUrl ?? ""
+        : "";
       for (const m of ms) {
+        const photoSigned = m.photo_url
+          ? (await supabase.storage
+              .from("member-photos")
+              .createSignedUrl(m.photo_url, 60 * 60 * 24 * 7)).data?.signedUrl ?? ""
+          : "";
         rows.push([
           t.team_number, t.reference_id, t.team_name, t.team_size, t.is_svce, t.college_name || "",
           t.category, t.problem_statement_id || "", t.problem_statement_name || "", t.company_name || "",
           t.mentor_name, t.mentor_email || "", t.mentor_phone || "",
-          t.payment_transaction_id, t.payment_bank_name, t.payment_mobile_number, t.payment_account_holder_name,
+          t.payment_transaction_id, t.payment_bank_name, t.payment_mobile_number, t.payment_account_holder_name, ssSigned,
           t.submission_status, t.submitted_at,
           m.member_order, m.unique_member_id, m.full_name, m.department, m.year_of_study,
-          m.phone_number, m.whatsapp_number, m.college_email, m.personal_email, m.registration_number || "",
+          m.phone_number, m.whatsapp_number, m.college_email, m.personal_email, m.registration_number || "", photoSigned,
         ].map((v) => String(v ?? "")));
       }
     }
@@ -141,22 +176,37 @@ function AdminDashboard() {
     URL.revokeObjectURL(url);
   };
 
-  const pageTeams = teams.slice(page * PAGE, (page + 1) * PAGE);
-  const pages = Math.max(1, Math.ceil(teams.length / PAGE));
+  const pageTeams = filtered.slice(page * PAGE, (page + 1) * PAGE);
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="mx-auto max-w-6xl px-4 py-8">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <h1 className="font-display text-3xl">Admin · Mission control</h1>
-            <button
-              onClick={exportCsv}
-              className="rounded-md border border-amber/60 bg-amber/10 px-4 py-2 text-amber hover:bg-amber/20"
-            >
-              Export CSV
-            </button>
+        <div className="mx-auto max-w-6xl px-4 py-6">
+          {/* Admin nav bar */}
+          <div className="panel rounded-xl p-3 corner-frame flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-2 font-display text-sm">
+              <LayoutDashboard className="h-4 w-4 text-cyan-edge" />
+              <span className="text-foreground">Admin Console</span>
+              <span className="font-mono-ui text-[10px] text-muted-foreground uppercase tracking-wider">
+                Mission control
+              </span>
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={exportCsv}
+                className="inline-flex items-center gap-1.5 rounded-md border border-amber/60 bg-amber/10 px-3 py-1.5 text-amber hover:bg-amber/20 text-sm"
+              >
+                <Download className="h-4 w-4" /> Export CSV
+              </button>
+              <button
+                onClick={signOut}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-surface-2"
+              >
+                <LogOut className="h-4 w-4" /> Sign out
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -244,6 +294,41 @@ function AdminDashboard() {
               </div>
 
               <div className="mt-8 panel rounded-xl p-4 corner-frame">
+                {/* Search + filters */}
+                <div className="mb-4 flex gap-2 flex-wrap items-center">
+                  <div className="relative flex-1 min-w-[200px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      value={search}
+                      onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                      placeholder="Search by team name, ref ID, or team #"
+                      className="w-full pl-9 pr-3 py-2 rounded-md bg-surface-2 border border-border focus:border-primary outline-none text-sm"
+                    />
+                  </div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+                    className="bg-surface-2 border border-border rounded-md px-2 py-2 text-sm"
+                  >
+                    <option value="all">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="verified">Verified</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => { setCategoryFilter(e.target.value); setPage(0); }}
+                    className="bg-surface-2 border border-border rounded-md px-2 py-2 text-sm"
+                  >
+                    <option value="all">All categories</option>
+                    <option value="Hardware">Hardware</option>
+                    <option value="Software">Software</option>
+                    <option value="Industry Problem Statement">Industry</option>
+                  </select>
+                  <span className="text-xs font-mono-ui text-muted-foreground">
+                    {filtered.length} result{filtered.length !== 1 && "s"}
+                  </span>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left font-mono-ui text-xs text-muted-foreground border-b border-border">

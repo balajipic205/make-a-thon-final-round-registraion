@@ -12,14 +12,20 @@ export const step1Schema = z
     is_svce: z.boolean(),
     college_name: z.string().max(120).optional().or(z.literal("")),
     category: z.enum(["Hardware", "Software", "Industry Problem Statement"]),
-    problem_statement_id: z.string().min(1).max(60),
-    problem_statement_name: z.string().min(2).max(200),
-    company_name: z.string().min(1).max(120),
+    problem_statement_id: z.string().min(1, "Problem statement ID required").max(60),
+    problem_statement_name: z.string().min(2, "Problem statement name required").max(200),
+    company_name: z.string().max(120).optional().or(z.literal("")),
   })
   .refine((v) => v.is_svce || (v.college_name && v.college_name.length >= 2), {
     path: ["college_name"],
     message: "College name required",
-  });
+  })
+  .refine(
+    (v) =>
+      v.category !== "Industry Problem Statement" ||
+      (v.company_name && v.company_name.length >= 1),
+    { path: ["company_name"], message: "Company name required for Industry category" },
+  );
 
 export const memberSchema = z.object({
   full_name: z.string().min(2).max(80).regex(lettersRe, "Letters only"),

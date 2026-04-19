@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SuccessRouteImport } from './routes/success'
 import { Route as RegisterTeamRouteImport } from './routes/register-team'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as MyTeamRouteImport } from './routes/my-team'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
@@ -30,6 +31,11 @@ const RegisterTeamRoute = RegisterTeamRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyTeamRoute = MyTeamRouteImport.update({
+  id: '/my-team',
+  path: '/my-team',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -56,6 +62,7 @@ const AdminTeamsIdRoute = AdminTeamsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/my-team': typeof MyTeamRoute
   '/register': typeof RegisterRoute
   '/register-team': typeof RegisterTeamRoute
   '/success': typeof SuccessRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/my-team': typeof MyTeamRoute
   '/register': typeof RegisterRoute
   '/register-team': typeof RegisterTeamRoute
   '/success': typeof SuccessRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/my-team': typeof MyTeamRoute
   '/register': typeof RegisterRoute
   '/register-team': typeof RegisterTeamRoute
   '/success': typeof SuccessRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/my-team'
     | '/register'
     | '/register-team'
     | '/success'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/my-team'
     | '/register'
     | '/register-team'
     | '/success'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/my-team'
     | '/register'
     | '/register-team'
     | '/success'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  MyTeamRoute: typeof MyTeamRoute
   RegisterRoute: typeof RegisterRoute
   RegisterTeamRoute: typeof RegisterTeamRoute
   SuccessRoute: typeof SuccessRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-team': {
+      id: '/my-team'
+      path: '/my-team'
+      fullPath: '/my-team'
+      preLoaderRoute: typeof MyTeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  MyTeamRoute: MyTeamRoute,
   RegisterRoute: RegisterRoute,
   RegisterTeamRoute: RegisterTeamRoute,
   SuccessRoute: SuccessRoute,
