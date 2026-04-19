@@ -31,3 +31,21 @@ update storage.buckets
 update storage.buckets
    set file_size_limit = 2097152       -- 2 MB
  where id = 'payment-screenshots';
+
+-- 3) Fix UUID defaults for existing databases and re-create submit function dependencies.
+create extension if not exists "pgcrypto";
+
+alter table if exists public.draft_registrations
+  alter column id set default gen_random_uuid();
+
+alter table if exists public.teams
+  alter column id set default gen_random_uuid();
+
+alter table if exists public.members
+  alter column id set default gen_random_uuid();
+
+alter table if exists public.audit_log
+  alter column id set default gen_random_uuid();
+
+alter table if exists public.admin_login_attempts
+  alter column id set default gen_random_uuid();
