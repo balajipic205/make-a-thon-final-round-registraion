@@ -164,23 +164,24 @@ export function Step5Payment({
       {/* Form */}
       <div className="space-y-4">
         <Field label="Transaction ID" error={errors.payment_transaction_id?.message}>
-          <input className="input" {...register("payment_transaction_id")} />
+          <input className="input" placeholder="Enter UPI / bank transaction ID" {...register("payment_transaction_id")} />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Bank name" error={errors.payment_bank_name?.message}>
-            <input className="input" {...register("payment_bank_name")} />
+            <input className="input" placeholder="For example: SBI / HDFC / GPay" {...register("payment_bank_name")} />
           </Field>
           <Field label="Mobile number used for payment" error={errors.payment_mobile_number?.message}>
             <input
               className="input"
               inputMode="numeric"
               maxLength={10}
+              placeholder="9876543210"
               {...register("payment_mobile_number")}
             />
           </Field>
         </div>
         <Field label="Account holder name" error={errors.payment_account_holder_name?.message}>
-          <input className="input" {...register("payment_account_holder_name")} />
+          <input className="input" placeholder="Enter account holder name" {...register("payment_account_holder_name")} />
         </Field>
 
         <div>
