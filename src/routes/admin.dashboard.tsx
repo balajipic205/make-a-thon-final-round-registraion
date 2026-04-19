@@ -294,6 +294,41 @@ function AdminDashboard() {
               </div>
 
               <div className="mt-8 panel rounded-xl p-4 corner-frame">
+                {/* Search + filters */}
+                <div className="mb-4 flex gap-2 flex-wrap items-center">
+                  <div className="relative flex-1 min-w-[200px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      value={search}
+                      onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                      placeholder="Search by team name, ref ID, or team #"
+                      className="w-full pl-9 pr-3 py-2 rounded-md bg-surface-2 border border-border focus:border-primary outline-none text-sm"
+                    />
+                  </div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+                    className="bg-surface-2 border border-border rounded-md px-2 py-2 text-sm"
+                  >
+                    <option value="all">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="verified">Verified</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => { setCategoryFilter(e.target.value); setPage(0); }}
+                    className="bg-surface-2 border border-border rounded-md px-2 py-2 text-sm"
+                  >
+                    <option value="all">All categories</option>
+                    <option value="Hardware">Hardware</option>
+                    <option value="Software">Software</option>
+                    <option value="Industry Problem Statement">Industry</option>
+                  </select>
+                  <span className="text-xs font-mono-ui text-muted-foreground">
+                    {filtered.length} result{filtered.length !== 1 && "s"}
+                  </span>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="text-left font-mono-ui text-xs text-muted-foreground border-b border-border">
