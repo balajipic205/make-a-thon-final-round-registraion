@@ -100,7 +100,7 @@ export function Step2Form({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Full name" error={memberErrs?.full_name?.message}>
-                <input className="input" {...register(`members.${idx}.full_name`)} />
+                <input className="input" placeholder="Enter full name" {...register(`members.${idx}.full_name`)} />
               </Field>
               <Field label="Department" error={memberErrs?.department?.message}>
                 <select className="input" {...register(`members.${idx}.department`)}>
@@ -111,7 +111,7 @@ export function Step2Form({
               </Field>
               {dept === "Other" && (
                 <Field label="Please specify" error={memberErrs?.department_other?.message}>
-                  <input className="input" {...register(`members.${idx}.department_other`)} />
+                  <input className="input" placeholder="Enter department name" {...register(`members.${idx}.department_other`)} />
                 </Field>
               )}
               <Field label="Year of study" error={memberErrs?.year_of_study?.message}>
@@ -126,6 +126,7 @@ export function Step2Form({
                 <input
                   className="input uppercase"
                   style={{ textTransform: "uppercase" }}
+                  placeholder="For example: 23BEC001"
                   {...register(`members.${idx}.registration_number`)}
                 />
               </Field>
@@ -134,6 +135,7 @@ export function Step2Form({
                   className="input"
                   inputMode="numeric"
                   maxLength={10}
+                  placeholder="9876543210"
                   {...register(`members.${idx}.phone_number`)}
                 />
               </Field>
@@ -142,6 +144,7 @@ export function Step2Form({
                   className="input"
                   inputMode="numeric"
                   maxLength={10}
+                  placeholder="9876543210"
                   {...register(`members.${idx}.whatsapp_number`)}
                 />
               </Field>
@@ -153,6 +156,7 @@ export function Step2Form({
                 <input
                   type="email"
                   className="input"
+                  placeholder={isSvce ? "name@svce.ac.in" : "name@college.edu"}
                   {...register(`members.${idx}.college_email`, {
                     validate: (v) =>
                       !isSvce || v.toLowerCase().endsWith("@svce.ac.in") || "Must be an @svce.ac.in email",
@@ -163,6 +167,7 @@ export function Step2Form({
                 <input
                   type="email"
                   className="input"
+                  placeholder="xxxx@gmail.com"
                   {...register(`members.${idx}.personal_email`)}
                 />
               </Field>

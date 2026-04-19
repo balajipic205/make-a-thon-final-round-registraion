@@ -42,25 +42,26 @@ export function Step3Form({
         Team status: {isSvce ? "SVCE" : "Non-SVCE"}
       </div>
       <Field label="Mentor name" error={errors.mentor_name?.message}>
-        <input className="input" {...register("mentor_name")} />
+        <input className="input" placeholder="Enter mentor full name" {...register("mentor_name")} />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Mentor department" error={errors.mentor_department?.message}>
-          <input className="input" {...register("mentor_department")} />
+          <input className="input" placeholder="ECE / CSE / IT" {...register("mentor_department")} />
         </Field>
         <Field label="Mentor designation" error={errors.mentor_designation?.message}>
-          <input className="input" {...register("mentor_designation")} />
+          <input className="input" placeholder="Professor / Assistant Professor" {...register("mentor_designation")} />
         </Field>
         <Field label="Mentor phone" error={errors.mentor_phone?.message}>
           <input
             className="input"
             inputMode="numeric"
             maxLength={10}
+            placeholder="9876543210"
             {...register("mentor_phone")}
           />
         </Field>
         <Field label="Mentor email" error={errors.mentor_email?.message}>
-          <input type="email" className="input" {...register("mentor_email")} />
+          <input type="email" className="input" placeholder={isSvce ? "mentor@svce.ac.in" : "mentor@gmail.com"} {...register("mentor_email")} />
         </Field>
       </div>
       <div className="flex gap-3">
