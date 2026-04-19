@@ -22,6 +22,15 @@ export const Route = createFileRoute("/register-team")({
     if (!data.session) {
       throw redirect({ to: "/login" });
     }
+    // If user has already submitted, send them to their summary page.
+    const { data: existing } = await supabase
+      .from("teams")
+      .select("id")
+      .eq("user_id", data.session.user.id)
+      .maybeSingle();
+    if (existing) {
+      throw redirect({ to: "/my-team" });
+    }
   },
   component: RegisterTeamPage,
   head: () => ({ meta: [{ title: "Team Registration — Make-a-Thon 7.0" }] }),
@@ -36,12 +45,7 @@ function RegisterTeamPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Block resubmission via sessionStorage
-  useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem("mat7_submitted") === "1") {
-      navigate({ to: "/success" });
-    }
-  }, [navigate]);
+  // (Resubmission is now blocked at the route guard above.)
 
   // Hydrate from Supabase draft
   useEffect(() => {
