@@ -36,13 +36,8 @@ export function PhotoCropper({
       const blob = await cropToBlob(src, areaPx);
       const compressed = await compressPhoto(blob);
       const kb = Math.round(compressed.size / 1024);
-      if (kb < 50) {
-        setErr(`Photo too small (${kb} KB). Use a higher-quality source image.`);
-        setBusy(false);
-        return;
-      }
-      if (kb > 950) {
-        setErr(`Photo is ${kb} KB — exceeds 950 KB limit. Try cropping tighter or use a smaller source image.`);
+      if (kb > 1024) {
+        setErr(`Photo is ${kb} KB — exceeds the 1 MB limit. Try cropping tighter or use a smaller source image.`);
         setBusy(false);
         return;
       }

@@ -80,12 +80,34 @@ export function Step6Review({
       </SummaryCard>
 
       <SummaryCard title="Photos">
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {s4.photos.map((p, i) => (
-            <div key={i} className="aspect-square rounded-md overflow-hidden border border-border bg-surface-2">
-              {p.url && <img src={p.url} alt={`M${i + 1}`} className="h-full w-full object-cover" />}
-            </div>
-          ))}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {s2.members.map((member, i) => {
+            const photo = s4.photos[i];
+            return (
+              <div key={i} className="rounded-md border border-border bg-surface-2/40 p-3">
+                <div className="flex items-start gap-3">
+                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-surface-2">
+                    {photo?.url ? (
+                      <img src={photo.url} alt={member.full_name} className="h-full w-full object-cover" />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="text-xs font-mono-ui text-muted-foreground">
+                      M{i + 1} {i === 0 && "· Team Leader"}
+                    </div>
+                    <div className="font-medium">{member.full_name}</div>
+                    <div className="text-sm text-muted-foreground break-words">
+                      {member.department} · Year {member.year_of_study}
+                    </div>
+                    <div className="text-sm text-muted-foreground break-all">{member.college_email}</div>
+                    <div className="text-xs font-mono-ui text-muted-foreground">
+                      Phone: {member.phone_number}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </SummaryCard>
 

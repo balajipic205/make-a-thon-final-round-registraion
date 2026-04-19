@@ -22,9 +22,6 @@ export function Step1Form({
   } = useForm<Step1>({
     resolver: zodResolver(step1Schema),
     defaultValues: {
-      team_size: 4,
-      is_svce: true,
-      category: "Hardware",
       ...defaultValues,
     },
   });
@@ -34,7 +31,7 @@ export function Step1Form({
   const category = watch("category");
 
   useEffect(() => {
-    if (isSvce) setValue("college_name", "");
+    if (isSvce === true) setValue("college_name", "");
   }, [isSvce, setValue]);
 
   const submit = handleSubmit((v) => {
@@ -95,6 +92,9 @@ export function Step1Form({
             );
           })}
         </div>
+        {errors.team_size?.message && (
+          <p className="text-xs text-destructive font-mono-ui mt-1">{errors.team_size.message}</p>
+        )}
       </div>
 
       <div>
@@ -128,7 +128,10 @@ export function Step1Form({
             Other College
           </button>
         </div>
-        {!isSvce && (
+        {errors.is_svce?.message && (
+          <p className="text-xs text-destructive font-mono-ui mt-1">{errors.is_svce.message}</p>
+        )}
+        {isSvce === false && (
           <div className="mt-3">
             <Field label="College name" error={errors.college_name?.message}>
               <input
