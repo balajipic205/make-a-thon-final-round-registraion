@@ -1,0 +1,145 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import confetti from "canvas-confetti";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { CheckCircle2, Copy, Check } from "lucide-react";
+
+type SubmitResult = {
+  success: boolean;
+  reference_id: string;
+  team_id: string;
+  team_number: number;
+  members_with_ids: { member_order: number; full_name: string; unique_member_id: string }[];
+};
+
+export const Route = createFileRoute("/success")({
+  component: SuccessPage,
+  head: () => ({ meta: [{ title: "Registration Submitted — Make-a-Thon 7.0" }] }),
+});
+
+function SuccessPage() {
+  const navigate = useNavigate();
+  const [result, setResult] = useState<SubmitResult | null>(null);
+  const [leaderEmail, setLeaderEmail] = useState<string>("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("mat7_result");
+    if (!raw) {
+      navigate({ to: "/" });
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw) as SubmitResult;
+      setResult(parsed);
+      setLeaderEmail(sessionStorage.getItem("mat7_leader_email") || "");
+    } catch {
+      navigate({ to: "/" });
+      return;
+    }
+    // confetti burst
+    const fire = (particleRatio: number, opts: confetti.Options) =>
+      confetti({
+        origin: { y: 0.6 },
+        ...opts,
+        particleCount: Math.floor(180 * particleRatio),
+      });
+    fire(0.25, { spread: 26, startVelocity: 55, colors: ["#00F5FF", "#FFB800"] });
+    fire(0.2, { spread: 60, colors: ["#00F5FF", "#FFB800"] });
+    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ["#00F5FF", "#FFB800", "#ffffff"] });
+    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ["#00F5FF"] });
+    fire(0.1, { spread: 120, startVelocity: 45, colors: ["#FFB800"] });
+  }, [navigate]);
+
+  if (!result) return null;
+
+  const copy = async () => {
+    await navigator.clipboard.writeText(result.reference_id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1">
+        <div className="mx-auto max-w-2xl px-4 py-12">
+          <div className="panel rounded-2xl p-6 sm:p-8 corner-frame text-center">
+            <div className="mx-auto h-14 w-14 rounded-full bg-success/15 flex items-center justify-center">
+              <CheckCircle2 className="h-7 w-7 text-success" />
+            </div>
+            <h1 className="mt-4 font-display text-3xl">Registration submitted</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Welcome to Make-a-Thon 7.0. Your team is now in the system.
+            </p>
+
+            <div className="mt-6 rounded-lg border border-primary/40 bg-primary/5 p-4">
+              <div className="font-mono-ui text-xs uppercase tracking-wider text-muted-foreground">
+                Team reference ID
+              </div>
+              <div className="mt-1 flex items-center justify-center gap-3">
+                <span className="font-mono-ui text-2xl font-semibold text-primary text-glow-cyan">
+                  {result.reference_id}
+                </span>
+                <button
+                  onClick={copy}
+                  className="rounded-md border border-primary/40 px-2 py-1 text-xs hover:bg-primary/10"
+                >
+                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                </button>
+              </div>
+              <div className="mt-2 text-xs font-mono-ui text-muted-foreground">
+                Team #{String(result.team_number).padStart(2, "0")}
+              </div>
+            </div>
+
+            <div className="mt-6 text-left">
+              <div className="font-mono-ui text-xs uppercase tracking-wider text-primary mb-2">
+                Member IDs
+              </div>
+              <div className="rounded-md border border-border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-surface-2 text-xs font-mono-ui text-muted-foreground">
+                    <tr>
+                      <th className="text-left px-3 py-2">#</th>
+                      <th className="text-left px-3 py-2">Name</th>
+                      <th className="text-left px-3 py-2">Unique ID</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.members_with_ids.map((m) => (
+                      <tr key={m.unique_member_id} className="border-t border-border">
+                        <td className="px-3 py-2 font-mono-ui text-muted-foreground">
+                          {m.member_order}
+                        </td>
+                        <td className="px-3 py-2">{m.full_name}</td>
+                        <td className="px-3 py-2 font-mono-ui text-amber">
+                          {m.unique_member_id}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <p className="mt-6 text-sm text-muted-foreground">
+              Your registration has been received. The organizing team will contact you via
+              email at{" "}
+              <span className="text-foreground font-medium">{leaderEmail || "your team leader's college email"}</span>.
+            </p>
+
+            <Link
+              to="/"
+              className="mt-6 inline-block rounded-md border border-border px-4 py-2 text-sm hover:bg-surface-2"
+            >
+              Back to home
+            </Link>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
