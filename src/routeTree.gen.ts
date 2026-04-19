@@ -9,10 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SuccessRouteImport } from './routes/success'
+import { Route as RegisterTeamRouteImport } from './routes/register-team'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminTeamsIdRouteImport } from './routes/admin.teams.$id'
 
+const SuccessRoute = SuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterTeamRoute = RegisterTeamRouteImport.update({
+  id: '/register-team',
+  path: '/register-team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -28,39 +42,101 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTeamsIdRoute = AdminTeamsIdRouteImport.update({
+  id: '/admin/teams/$id',
+  path: '/admin/teams/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/register-team': typeof RegisterTeamRoute
+  '/success': typeof SuccessRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/teams/$id': typeof AdminTeamsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/register-team': typeof RegisterTeamRoute
+  '/success': typeof SuccessRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/teams/$id': typeof AdminTeamsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/register-team': typeof RegisterTeamRoute
+  '/success': typeof SuccessRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/teams/$id': typeof AdminTeamsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/register-team'
+    | '/success'
+    | '/admin/dashboard'
+    | '/admin/teams/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register'
-  id: '__root__' | '/' | '/login' | '/register'
+  to:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/register-team'
+    | '/success'
+    | '/admin/dashboard'
+    | '/admin/teams/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/register'
+    | '/register-team'
+    | '/success'
+    | '/admin/dashboard'
+    | '/admin/teams/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  RegisterTeamRoute: typeof RegisterTeamRoute
+  SuccessRoute: typeof SuccessRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminTeamsIdRoute: typeof AdminTeamsIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/success': {
+      id: '/success'
+      path: '/success'
+      fullPath: '/success'
+      preLoaderRoute: typeof SuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register-team': {
+      id: '/register-team'
+      path: '/register-team'
+      fullPath: '/register-team'
+      preLoaderRoute: typeof RegisterTeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -82,6 +158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/teams/$id': {
+      id: '/admin/teams/$id'
+      path: '/admin/teams/$id'
+      fullPath: '/admin/teams/$id'
+      preLoaderRoute: typeof AdminTeamsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,7 +179,20 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  RegisterTeamRoute: RegisterTeamRoute,
+  SuccessRoute: SuccessRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminTeamsIdRoute: AdminTeamsIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
