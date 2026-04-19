@@ -12,7 +12,10 @@ create sequence if not exists team_number_seq start 1 maxvalue 60;
 -- =========================
 -- Tables
 -- =========================
-create type if not exists public.app_role as enum ('admin', 'user');
+do $$ begin
+  create type public.app_role as enum ('admin', 'user');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists public.user_profiles (
   id uuid primary key references auth.users(id) on delete cascade,

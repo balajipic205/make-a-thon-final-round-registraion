@@ -189,24 +189,26 @@ export function Step1Form({
                 {...register("problem_statement_id")}
               />
             </Field>
-            <Field label="Company name" error={errors.company_name?.message}>
+            <Field label="Problem statement name" error={errors.problem_statement_name?.message}>
               <input
                 className="input"
-                maxLength={120}
-                placeholder="Enter company name"
-                {...register("company_name")}
+                maxLength={200}
+                placeholder="Enter the problem statement title"
+                {...register("problem_statement_name")}
               />
             </Field>
-            <div className="sm:col-span-2">
-              <Field label="Problem statement name" error={errors.problem_statement_name?.message}>
-                <input
-                  className="input"
-                  maxLength={200}
-                  placeholder="Enter the problem statement title"
-                  {...register("problem_statement_name")}
-                />
-              </Field>
-            </div>
+            {category === "Industry Problem Statement" && (
+              <div className="sm:col-span-2">
+                <Field label="Company name" error={errors.company_name?.message}>
+                  <input
+                    className="input"
+                    maxLength={120}
+                    placeholder="Enter sponsoring company name"
+                    {...register("company_name")}
+                  />
+                </Field>
+              </div>
+            )}
           </div>
         </div>
       )}

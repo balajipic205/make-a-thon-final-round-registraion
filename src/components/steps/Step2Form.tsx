@@ -22,9 +22,9 @@ export function Step2Form({
 }) {
   const blank = {
     full_name: "",
-    department: "ECE",
+    department: "" as any,
     department_other: "",
-    year_of_study: "3rd" as const,
+    year_of_study: "" as any,
     registration_number: "",
     phone_number: "",
     whatsapp_number: "",
@@ -103,9 +103,10 @@ export function Step2Form({
                 <input className="input" placeholder="Enter full name" {...register(`members.${idx}.full_name`)} />
               </Field>
               <Field label="Department" error={memberErrs?.department?.message}>
-                <select className="input" {...register(`members.${idx}.department`)}>
+                <select className="input" defaultValue="" {...register(`members.${idx}.department`)}>
+                  <option value="" disabled>Select department</option>
                   {DEPARTMENTS.map((d) => (
-                    <option key={d}>{d}</option>
+                    <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
               </Field>
@@ -115,11 +116,12 @@ export function Step2Form({
                 </Field>
               )}
               <Field label="Year of study" error={memberErrs?.year_of_study?.message}>
-                <select className="input" {...register(`members.${idx}.year_of_study`)}>
-                  <option>1st</option>
-                  <option>2nd</option>
-                  <option>3rd</option>
-                  <option>4th</option>
+                <select className="input" defaultValue="" {...register(`members.${idx}.year_of_study`)}>
+                  <option value="" disabled>Select year</option>
+                  <option value="1st">1st</option>
+                  <option value="2nd">2nd</option>
+                  <option value="3rd">3rd</option>
+                  <option value="4th">4th</option>
                 </select>
               </Field>
               <Field label="Registration number (optional)" error={memberErrs?.registration_number?.message}>
