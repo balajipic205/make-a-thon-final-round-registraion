@@ -5,6 +5,7 @@
 -- =====================================================================
 
 create extension if not exists "uuid-ossp";
+create extension if not exists "pgcrypto";
 
 -- Team number sequence (max 60 teams)
 create sequence if not exists team_number_seq start 1 maxvalue 60;
@@ -32,7 +33,7 @@ create table if not exists public.user_roles (
 );
 
 create table if not exists public.draft_registrations (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid unique not null references auth.users(id) on delete cascade,
   step1 jsonb,
   step2 jsonb,
@@ -44,7 +45,7 @@ create table if not exists public.draft_registrations (
 );
 
 create table if not exists public.teams (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete set null,
   reference_id text unique not null,
   team_number integer unique not null,
@@ -75,7 +76,7 @@ create table if not exists public.teams (
 );
 
 create table if not exists public.members (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   unique_member_id text unique not null,
   team_id uuid not null references public.teams(id) on delete cascade,
   member_order integer not null check (member_order between 1 and 6),
@@ -94,7 +95,7 @@ create table if not exists public.members (
 );
 
 create table if not exists public.audit_log (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   team_id uuid references public.teams(id),
   event_type text not null,
   event_data jsonb,
@@ -104,7 +105,7 @@ create table if not exists public.audit_log (
 );
 
 create table if not exists public.admin_login_attempts (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id),
   email text,
   attempted_at timestamptz default now(),
@@ -219,7 +220,7 @@ begin
 
   -- atomic team number
   v_team_number := nextval('team_number_seq');
-  v_team_id := uuid_generate_v4();
+  v_team_id := gen_random_uuid();
   v_reference_id := 'MAT7-' || upper(substring(v_team_id::text, 1, 8));
 
   insert into public.teams (

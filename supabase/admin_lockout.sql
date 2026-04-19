@@ -6,7 +6,7 @@
 
 -- Make sure the table exists (no-op if already created in schema.sql)
 create table if not exists public.admin_login_attempts (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete set null,
   email text,
   attempted_at timestamptz default now(),

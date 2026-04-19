@@ -143,6 +143,9 @@ function RegisterTeamPage() {
         p_user_agent: ua,
       });
       if (error) throw error;
+      if (data && typeof data === "object" && "success" in data && !(data as { success?: boolean }).success) {
+        throw new Error((data as { error?: string }).error || "Submission failed. Please try again.");
+      }
       // success
       sessionStorage.setItem("mat7_submitted", "1");
       sessionStorage.setItem("mat7_result", JSON.stringify(data));
