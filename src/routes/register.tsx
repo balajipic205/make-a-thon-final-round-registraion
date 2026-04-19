@@ -69,10 +69,10 @@ function RegisterPage() {
           </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Field label="Full name" error={errors.full_name?.message}>
-              <input className="input" autoComplete="name" {...register("full_name")} />
+              <input className="input" autoComplete="name" placeholder="Enter your full name" {...register("full_name")} />
             </Field>
             <Field label="Email" error={errors.email?.message}>
-              <input type="email" className="input" autoComplete="email" {...register("email")} />
+              <input type="email" className="input" autoComplete="email" placeholder="xxxx@gmail.com" {...register("email")} />
             </Field>
             <Field
               label="Password"
@@ -83,6 +83,7 @@ function RegisterPage() {
                 type="password"
                 className="input"
                 autoComplete="new-password"
+                  placeholder="Create a strong password"
                 {...register("password")}
               />
             </Field>
@@ -91,6 +92,7 @@ function RegisterPage() {
                 type="password"
                 className="input"
                 autoComplete="new-password"
+                placeholder="Re-enter your password"
                 {...register("confirm")}
               />
             </Field>

@@ -9,12 +9,13 @@ export const Route = createFileRoute("/admin/teams/$id")({
   beforeLoad: async () => {
     const { data: sess } = await supabase.auth.getSession();
     if (!sess.session) throw redirect({ to: "/login" });
-    const { data: prof } = await supabase
-      .from("user_profiles")
+    const { data: adminRole } = await supabase
+      .from("user_roles")
       .select("role")
-      .eq("id", sess.session.user.id)
+      .eq("user_id", sess.session.user.id)
+      .eq("role", "admin")
       .maybeSingle();
-    if (prof?.role !== "admin") throw redirect({ to: "/" });
+    if (adminRole?.role !== "admin") throw redirect({ to: "/login" });
   },
   component: TeamDetail,
 });

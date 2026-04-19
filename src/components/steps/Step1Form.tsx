@@ -67,7 +67,7 @@ export function Step1Form({
         <input
           className="input"
           maxLength={50}
-          placeholder="e.g. Web Slingers"
+          placeholder="Enter your team name"
           {...register("team_name")}
         />
       </Field>
@@ -134,7 +134,7 @@ export function Step1Form({
               <input
                 className="input"
                 maxLength={120}
-                placeholder="Your college full name"
+                placeholder="Enter your college full name"
                 {...register("college_name")}
               />
             </Field>
@@ -185,7 +185,7 @@ export function Step1Form({
               <input
                 className="input"
                 maxLength={60}
-                placeholder="e.g. PS-HW-12"
+                placeholder="For example: PS-HW-12"
                 {...register("problem_statement_id")}
               />
             </Field>
@@ -193,7 +193,7 @@ export function Step1Form({
               <input
                 className="input"
                 maxLength={120}
-                placeholder="Sponsoring company"
+                placeholder="Enter company name"
                 {...register("company_name")}
               />
             </Field>
@@ -202,7 +202,7 @@ export function Step1Form({
                 <input
                   className="input"
                   maxLength={200}
-                  placeholder="Short descriptive title"
+                  placeholder="Enter the problem statement title"
                   {...register("problem_statement_name")}
                 />
               </Field>

@@ -1,6 +1,7 @@
 -- =====================================================================
 -- Make-a-Thon 7.0 — Database Schema
 -- Run this entire file in Supabase SQL Editor (one-shot).
+-- This version uses user_roles for admin access and creates storage buckets.
 -- =====================================================================
 
 create extension if not exists "uuid-ossp";
@@ -11,11 +12,20 @@ create sequence if not exists team_number_seq start 1 maxvalue 60;
 -- =========================
 -- Tables
 -- =========================
+create type if not exists public.app_role as enum ('admin', 'user');
+
 create table if not exists public.user_profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
-  role text not null default 'user' check (role in ('user', 'admin')),
   created_at timestamptz default now()
+);
+
+create table if not exists public.user_roles (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  role public.app_role not null default 'user',
+  created_at timestamptz default now(),
+  unique (user_id, role)
 );
 
 create table if not exists public.draft_registrations (
@@ -102,6 +112,16 @@ create index if not exists idx_admin_attempts_email_time on public.admin_login_a
 create index if not exists idx_teams_status on public.teams(submission_status);
 create index if not exists idx_teams_category on public.teams(category);
 
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values
+  ('member-photos', 'member-photos', false, 5242880, array['image/jpeg', 'image/png']),
+  ('payment-screenshots', 'payment-screenshots', false, 10485760, array['image/jpeg', 'image/png', 'application/pdf']),
+  ('payment-qr', 'payment-qr', true, 1048576, array['image/png', 'image/jpeg'])
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
 -- =========================
 -- Auto-create profile on signup
 -- =========================
@@ -115,6 +135,9 @@ begin
   insert into public.user_profiles (id, full_name)
   values (new.id, coalesce(new.raw_user_meta_data->>'full_name', ''))
   on conflict (id) do nothing;
+  insert into public.user_roles (user_id, role)
+  values (new.id, 'user')
+  on conflict (user_id, role) do nothing;
   return new;
 end;
 $$;
@@ -135,8 +158,8 @@ security definer
 set search_path = public
 as $$
   select exists (
-    select 1 from public.user_profiles
-    where id = auth.uid() and role = 'admin'
+    select 1 from public.user_roles
+    where user_id = auth.uid() and role = 'admin'
   );
 $$;
 
@@ -321,6 +344,7 @@ $$;
 -- RLS
 -- =========================
 alter table public.user_profiles enable row level security;
+alter table public.user_roles enable row level security;
 alter table public.draft_registrations enable row level security;
 alter table public.teams enable row level security;
 alter table public.members enable row level security;
@@ -335,6 +359,10 @@ create policy "users read own profile" on public.user_profiles
 drop policy if exists "users update own profile" on public.user_profiles;
 create policy "users update own profile" on public.user_profiles
   for update using (auth.uid() = id);
+
+drop policy if exists "users read own roles" on public.user_roles;
+create policy "users read own roles" on public.user_roles
+  for select using (auth.uid() = user_id or public.is_admin());
 
 -- draft_registrations
 drop policy if exists "drafts owner all" on public.draft_registrations;

@@ -30,9 +30,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     const { data } = await supabase
-      .from("user_profiles")
+      .from("user_roles")
       .select("role")
-      .eq("id", uid)
+      .eq("user_id", uid)
+      .eq("role", "admin")
       .maybeSingle();
     setIsAdmin(data?.role === "admin");
   };
