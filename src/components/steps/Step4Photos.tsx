@@ -35,7 +35,7 @@ export function Step4Photos({
   const handleFile = async (f: File) => {
     setError(null);
     if (f.size > 5 * 1024 * 1024) {
-      setError("File too large. Max 5 MB before crop.");
+      setError("Source file too large. Max 5 MB before crop. After cropping it will be compressed to under 950 KB.");
       return;
     }
     const mime = await detectMime(f);
@@ -123,7 +123,7 @@ export function Step4Photos({
           ))}
         </div>
         <div className="text-xs font-mono-ui text-muted-foreground">
-          Each photo: max 900 KB · Total for your team: ~{(totalKb / 1024).toFixed(2)} MB
+          Each photo: 400-950 KB · Total for your team: ~{(totalKb / 1024).toFixed(2)} MB
         </div>
         <div className="flex gap-3">
           <button
@@ -191,8 +191,8 @@ export function Step4Photos({
         {photo?.sizeKb && (
           <div className="mt-2 text-xs font-mono-ui text-muted-foreground">
             Uploaded: {photo.sizeKb} KB
-            {photo.sizeKb > 900 && (
-              <span className="text-amber"> · over 900 KB</span>
+            {photo.sizeKb > 950 && (
+              <span className="text-amber"> · over 950 KB limit</span>
             )}
           </div>
         )}
@@ -243,7 +243,7 @@ export function Step4Photos({
 
       <div className="text-xs font-mono-ui text-muted-foreground space-y-1">
         <div>Format: JPG / PNG · Max 5 MB pre-crop · Min 200×200 pixels</div>
-        <div>Compressed to 500–900 KB · Each photo is private to you and the organizers.</div>
+        <div>Auto-compressed to <span className="text-foreground">400-950 KB</span> after crop · Photos are private to you and the organizers.</div>
         <div>Total uploaded for your team: {(totalKb / 1024).toFixed(2)} MB</div>
       </div>
 

@@ -61,8 +61,13 @@ export function Step5Payment({
 
   const handleFile = async (f: File) => {
     setSsError(null);
-    if (f.size > 10 * 1024 * 1024) {
-      setSsError("File too large. Max 10 MB.");
+    if (f.size > 2 * 1024 * 1024) {
+      setSsError(`File too large (${(f.size / 1024 / 1024).toFixed(2)} MB). Max 2 MB.`);
+      return;
+    }
+    if (f.size < 1 * 1024 * 1024 * 0.05) {
+      // <50KB is suspicious
+      setSsError("File too small. Please upload a clear screenshot.");
       return;
     }
     const mime = await detectMime(f);
@@ -186,7 +191,7 @@ export function Step5Payment({
 
         <div>
           <span className="block text-xs font-mono-ui uppercase tracking-wider text-muted-foreground mb-1">
-            Payment screenshot (JPG / PNG / PDF, max 10 MB)
+            Payment screenshot (JPG / PNG / PDF, 1-2 MB)
           </span>
           <input
             ref={fileRef}
