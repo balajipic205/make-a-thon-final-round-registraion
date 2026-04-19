@@ -1,69 +1,35 @@
-# Make-a-Thon 7.0 — Setup Checklist
+# Make-a-Thon 7.0 — Setup Guide
 
-You're using the **external Supabase project** (`cnwchucuzheqpzoyuybi`). Lovable has no
-API access to it, so YOU must do the following before the portal works.
+## SQL Run Order (in Supabase SQL Editor)
 
-## 1. Run the SQL (one-time)
+Run these files **in this exact order**. Each is safe to re-run.
 
-Open **Supabase Dashboard → SQL Editor**.
+1. **`supabase/schema.sql`** — tables, types, RPCs, RLS, storage buckets
+2. **`supabase/storage_buckets.sql`** — storage RLS policies for the buckets
+3. **`supabase/patch_v2.sql`** — adds `record_admin_login_attempt` RPC + tightens bucket size limits to match the UI (1 MB photos, 2 MB screenshots)
+4. **`supabase/make_admin.sql`** — open it, replace `PASTE-YOUR-USER-UUID-HERE` with your `auth.users` UUID, then run
 
-1. Paste the entire contents of `supabase/schema.sql` and run.
-2. Paste the entire contents of `supabase/admin_lockout.sql` and run (adds the
-   3-strike / 2-hour admin lockout RPCs).
-3. If you already ran an older SQL script, first delete old storage policies or use a clean project, then re-run the current files.
-
-## 2. Storage buckets
-
-The current `supabase/schema.sql` already creates these buckets for you:
-
-- `member-photos`
-- `payment-screenshots`
-- `payment-qr`
-
-After running the schema, go to **Storage** and confirm the buckets are visible.
-Then upload your real QR code as `qr.png` to the `payment-qr` bucket.
-
-## 3. Run storage policies
-
-Paste `supabase/storage_policies.sql` into SQL Editor and run.
-
-## 4. Enable Email auth
-
-**Authentication → Providers → Email** → enable.
-For testing, **disable "Confirm email"** so logins are instant. Re-enable for production.
-
-## 5. Promote yourself to admin
-
-After registering an account on the portal, find your UID in **Authentication → Users**
-and run this exact SQL with the plain UUID only, without `< >`:
-
+To find your UUID:
 ```sql
-insert into public.user_roles (user_id, role)
-values ('your-auth-uid-here', 'admin')
-on conflict (user_id, role) do nothing;
+select id, email from auth.users;
 ```
 
-Example:
+## Storage Setup
 
-```sql
-insert into public.user_roles (user_id, role)
-values ('e4e5249d-d7f2-40ad-abfa-035ee9e8022a', 'admin')
-on conflict (user_id, role) do nothing;
-```
+After running the SQL, **upload your payment QR** to the `payment-qr` bucket as `qr.png`
+(Storage → payment-qr → Upload).
 
-## 6. Update `.env`
+## File size policy (enforced in UI + buckets)
 
-Already done — but if your QR upload happens later, also set:
+- Member photos: source ≤ 5 MB → auto-cropped & compressed to **400–950 KB**
+- Payment screenshot: **1–2 MB** (JPG / PNG / PDF)
 
-```
-VITE_WHATSAPP_GROUP_URL=https://chat.whatsapp.com/<your-real-invite>
-```
+## Admin login lockout
 
-## Troubleshooting
+3 wrong password attempts within a 2-hour window locks that email for 2 hours.
 
-- **"function submit_registration does not exist"** → step 1 wasn't run.
-- **Bucket not found** → your database is still using the older schema, so run the current `supabase/schema.sql` which creates the buckets.
-- **QR shows broken image** → bucket isn't public or `qr.png` wasn't uploaded.
-- **"You have already submitted"** → expected; clear via:
-  `delete from public.teams where user_id = '<uid>';`
-- **Photo upload 403** → step 3 storage policies not applied, or bucket name wrong.
+## User flow
+
+- New user → `/login` → `/register` → 6-step wizard → `/success`
+- Returning user (already submitted) → `/login` → `/my-team` (read-only summary with "do not resubmit, contact us" note)
+- Admin → `/login` → `/admin/dashboard`
