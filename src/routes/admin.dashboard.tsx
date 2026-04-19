@@ -183,15 +183,30 @@ function AdminDashboard() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="mx-auto max-w-6xl px-4 py-8">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <h1 className="font-display text-3xl">Admin · Mission control</h1>
-            <button
-              onClick={exportCsv}
-              className="rounded-md border border-amber/60 bg-amber/10 px-4 py-2 text-amber hover:bg-amber/20"
-            >
-              Export CSV
-            </button>
+        <div className="mx-auto max-w-6xl px-4 py-6">
+          {/* Admin nav bar */}
+          <div className="panel rounded-xl p-3 corner-frame flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center gap-2 font-display text-sm">
+              <LayoutDashboard className="h-4 w-4 text-cyan-edge" />
+              <span className="text-foreground">Admin Console</span>
+              <span className="font-mono-ui text-[10px] text-muted-foreground uppercase tracking-wider">
+                Mission control
+              </span>
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={exportCsv}
+                className="inline-flex items-center gap-1.5 rounded-md border border-amber/60 bg-amber/10 px-3 py-1.5 text-amber hover:bg-amber/20 text-sm"
+              >
+                <Download className="h-4 w-4" /> Export CSV
+              </button>
+              <button
+                onClick={signOut}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-surface-2"
+              >
+                <LogOut className="h-4 w-4" /> Sign out
+              </button>
+            </div>
           </div>
 
           {loading ? (
