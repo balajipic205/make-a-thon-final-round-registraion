@@ -1,8 +1,9 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, redirect, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
+import { Search, LogOut, LayoutDashboard, Download } from "lucide-react";
 import {
   PieChart,
   Pie,
@@ -49,9 +50,13 @@ type Team = {
 const COLORS = ["#00F5FF", "#FFB800", "#A78BFA", "#34D399"];
 
 function AdminDashboard() {
+  const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const PAGE = 15;
 
   useEffect(() => {
@@ -64,6 +69,25 @@ function AdminDashboard() {
         setLoading(false);
       });
   }, []);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return teams.filter((t) => {
+      if (statusFilter !== "all" && t.submission_status !== statusFilter) return false;
+      if (categoryFilter !== "all" && t.category !== categoryFilter) return false;
+      if (!q) return true;
+      return (
+        t.team_name.toLowerCase().includes(q) ||
+        t.reference_id.toLowerCase().includes(q) ||
+        String(t.team_number).padStart(2, "0").includes(q)
+      );
+    });
+  }, [teams, search, statusFilter, categoryFilter]);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/login" });
+  };
 
   const total = teams.length;
   const byCategory = ["Hardware", "Software", "Industry Problem Statement"].map((c) => ({
