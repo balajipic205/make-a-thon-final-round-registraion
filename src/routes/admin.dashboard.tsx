@@ -123,7 +123,7 @@ function AdminDashboard() {
     const { data } = await supabase
       .from("teams")
       .select(
-        "*,members(unique_member_id,member_order,full_name,department,year_of_study,phone_number,whatsapp_number,college_email,personal_email,registration_number)",
+        "*,members(unique_member_id,member_order,full_name,department,year_of_study,phone_number,whatsapp_number,college_email,personal_email,registration_number,photo_url)",
       )
       .order("team_number", { ascending: true });
     if (!data) return;
@@ -132,24 +132,35 @@ function AdminDashboard() {
         "team_number", "reference_id", "team_name", "team_size", "is_svce", "college_name",
         "category", "problem_id", "problem_name", "company",
         "mentor_name", "mentor_email", "mentor_phone",
-        "payment_txn", "payment_bank", "payment_mobile", "payment_holder",
+        "payment_txn", "payment_bank", "payment_mobile", "payment_holder", "payment_screenshot_url",
         "submission_status", "submitted_at",
         "member_order", "unique_member_id", "member_name", "department", "year",
-        "phone", "whatsapp", "college_email", "personal_email", "reg_no",
+        "phone", "whatsapp", "college_email", "personal_email", "reg_no", "photo_view_url",
       ],
     ];
     for (const t of data) {
       const ms: any[] = (t as any).members || [];
       ms.sort((a, b) => a.member_order - b.member_order);
+      // Sign URLs (long expiry — 7 days for CSV export convenience)
+      const ssSigned = t.payment_screenshot_url
+        ? (await supabase.storage
+            .from("payment-screenshots")
+            .createSignedUrl(t.payment_screenshot_url, 60 * 60 * 24 * 7)).data?.signedUrl ?? ""
+        : "";
       for (const m of ms) {
+        const photoSigned = m.photo_url
+          ? (await supabase.storage
+              .from("member-photos")
+              .createSignedUrl(m.photo_url, 60 * 60 * 24 * 7)).data?.signedUrl ?? ""
+          : "";
         rows.push([
           t.team_number, t.reference_id, t.team_name, t.team_size, t.is_svce, t.college_name || "",
           t.category, t.problem_statement_id || "", t.problem_statement_name || "", t.company_name || "",
           t.mentor_name, t.mentor_email || "", t.mentor_phone || "",
-          t.payment_transaction_id, t.payment_bank_name, t.payment_mobile_number, t.payment_account_holder_name,
+          t.payment_transaction_id, t.payment_bank_name, t.payment_mobile_number, t.payment_account_holder_name, ssSigned,
           t.submission_status, t.submitted_at,
           m.member_order, m.unique_member_id, m.full_name, m.department, m.year_of_study,
-          m.phone_number, m.whatsapp_number, m.college_email, m.personal_email, m.registration_number || "",
+          m.phone_number, m.whatsapp_number, m.college_email, m.personal_email, m.registration_number || "", photoSigned,
         ].map((v) => String(v ?? "")));
       }
     }
@@ -165,8 +176,8 @@ function AdminDashboard() {
     URL.revokeObjectURL(url);
   };
 
-  const pageTeams = teams.slice(page * PAGE, (page + 1) * PAGE);
-  const pages = Math.max(1, Math.ceil(teams.length / PAGE));
+  const pageTeams = filtered.slice(page * PAGE, (page + 1) * PAGE);
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
 
   return (
     <div className="min-h-screen flex flex-col">
