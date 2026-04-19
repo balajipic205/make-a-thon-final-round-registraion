@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { compressPhoto, cropToBlob, fileToDataUrl } from "@/lib/image";
@@ -18,10 +18,11 @@ export function PhotoCropper({
   const [zoom, setZoom] = useState(1);
   const [areaPx, setAreaPx] = useState<Area | null>(null);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     fileToDataUrl(file).then(setSrc);
-  });
+  }, [file]);
 
   const onCropComplete = useCallback((_: Area, px: Area) => {
     setAreaPx(px);
@@ -30,10 +31,22 @@ export function PhotoCropper({
   const confirm = async () => {
     if (!areaPx || !src) return;
     setBusy(true);
+    setErr(null);
     try {
       const blob = await cropToBlob(src, areaPx);
       const compressed = await compressPhoto(blob);
-      onConfirm(compressed, Math.round(compressed.size / 1024));
+      const kb = Math.round(compressed.size / 1024);
+      if (kb < 50) {
+        setErr(`Photo too small (${kb} KB). Use a higher-quality source image.`);
+        setBusy(false);
+        return;
+      }
+      if (kb > 950) {
+        setErr(`Photo is ${kb} KB — exceeds 950 KB limit. Try cropping tighter or use a smaller source image.`);
+        setBusy(false);
+        return;
+      }
+      onConfirm(compressed, kb);
     } finally {
       setBusy(false);
     }
@@ -75,6 +88,9 @@ export function PhotoCropper({
             className="w-full accent-primary"
           />
         </div>
+        {err && (
+          <div className="mt-3 text-xs text-destructive font-mono-ui">{err}</div>
+        )}
         <div className="mt-4 flex gap-2 justify-end">
           <button
             onClick={onCancel}

@@ -38,15 +38,15 @@ export async function cropToBlob(
   );
 }
 
-// Compress to ~500-900KB target
+// Compress to ~400-950KB target
 export async function compressPhoto(blob: Blob): Promise<File> {
   const file = new File([blob], "crop.jpg", { type: "image/jpeg" });
   const out = await imageCompression(file, {
     maxSizeMB: 0.9,
-    maxWidthOrHeight: 800,
+    maxWidthOrHeight: 900,
     useWebWorker: true,
     fileType: "image/jpeg",
-    initialQuality: 0.85,
+    initialQuality: 0.88,
   });
   return out;
 }
