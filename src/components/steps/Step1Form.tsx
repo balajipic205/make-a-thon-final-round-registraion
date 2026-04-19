@@ -4,6 +4,7 @@ import { step1Schema, type Step1 } from "@/lib/validation";
 import { Field } from "@/routes/login";
 import { clean } from "@/lib/sanitize";
 import { useEffect } from "react";
+import { Cpu, Code2, Factory, ArrowRight } from "lucide-react";
 
 export function Step1Form({
   defaultValues,
@@ -29,6 +30,8 @@ export function Step1Form({
   });
 
   const isSvce = watch("is_svce");
+  const teamSize = watch("team_size");
+  const category = watch("category");
 
   useEffect(() => {
     if (isSvce) setValue("college_name", "");
@@ -45,48 +48,95 @@ export function Step1Form({
     });
   });
 
+  const categories = [
+    { v: "Hardware", icon: Cpu, hint: "Build with circuits" },
+    { v: "Software", icon: Code2, hint: "Build with code" },
+    { v: "Industry Problem Statement", icon: Factory, hint: "Solve real problems" },
+  ] as const;
+
   return (
-    <form onSubmit={submit} className="space-y-5">
-      <Field label="Team name" error={errors.team_name?.message}>
-        <input className="input" maxLength={50} {...register("team_name")} />
+    <form onSubmit={submit} className="space-y-6">
+      <div>
+        <div className="font-display text-lg text-foreground">Team Information</div>
+        <div className="font-mono-ui text-[11px] uppercase tracking-[0.2em] text-cyan-edge mt-0.5">
+          Step 1 / 6
+        </div>
+      </div>
+
+      <Field label="Team Name" error={errors.team_name?.message}>
+        <input
+          className="input"
+          maxLength={50}
+          placeholder="e.g. Web Slingers"
+          {...register("team_name")}
+        />
       </Field>
 
-      <Field label="Team size" error={errors.team_size?.message}>
-        <select className="input" {...register("team_size", { valueAsNumber: true })}>
-          <option value={4}>4 members</option>
-          <option value={5}>5 members</option>
-          <option value={6}>6 members</option>
-        </select>
-      </Field>
+      <div>
+        <span className="block text-xs font-mono-ui uppercase tracking-wider text-muted-foreground mb-2">
+          Team Size
+        </span>
+        <div className="grid grid-cols-3 gap-2">
+          {[4, 5, 6].map((n) => {
+            const sel = teamSize === n;
+            return (
+              <button
+                type="button"
+                key={n}
+                onClick={() => setValue("team_size", n as 4 | 5 | 6)}
+                className={`min-h-[52px] rounded-md border font-mono-ui text-sm transition-all ${
+                  sel
+                    ? "border-spider text-spider bg-spider/10 shadow-[0_0_18px_color-mix(in_oklab,var(--spider)_30%,transparent)]"
+                    : "border-border text-muted-foreground hover:border-cyan-edge"
+                }`}
+              >
+                {n} Members
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div>
         <span className="block text-xs font-mono-ui uppercase tracking-wider text-muted-foreground mb-2">
           College
         </span>
         <div className="grid grid-cols-2 gap-2">
-          <label className={`cursor-pointer rounded-md border px-3 py-2.5 text-sm flex items-center gap-2 ${isSvce ? "border-primary bg-primary/10" : "border-border"}`}>
-            <input
-              type="radio"
-              className="accent-primary"
-              checked={isSvce}
-              onChange={() => setValue("is_svce", true)}
-            />
+          <button
+            type="button"
+            onClick={() => {
+              setValue("is_svce", true);
+              setValue("college_name", "");
+            }}
+            className={`min-h-[52px] rounded-md border font-mono-ui text-sm transition-all ${
+              isSvce
+                ? "border-spider text-spider bg-spider/10 shadow-[0_0_18px_color-mix(in_oklab,var(--spider)_30%,transparent)]"
+                : "border-border text-muted-foreground hover:border-cyan-edge"
+            }`}
+          >
             SVCE
-          </label>
-          <label className={`cursor-pointer rounded-md border px-3 py-2.5 text-sm flex items-center gap-2 ${!isSvce ? "border-primary bg-primary/10" : "border-border"}`}>
-            <input
-              type="radio"
-              className="accent-primary"
-              checked={!isSvce}
-              onChange={() => setValue("is_svce", false)}
-            />
-            Other college
-          </label>
+          </button>
+          <button
+            type="button"
+            onClick={() => setValue("is_svce", false)}
+            className={`min-h-[52px] rounded-md border font-mono-ui text-sm transition-all ${
+              !isSvce
+                ? "border-spider text-spider bg-spider/10 shadow-[0_0_18px_color-mix(in_oklab,var(--spider)_30%,transparent)]"
+                : "border-border text-muted-foreground hover:border-cyan-edge"
+            }`}
+          >
+            Other College
+          </button>
         </div>
         {!isSvce && (
           <div className="mt-3">
             <Field label="College name" error={errors.college_name?.message}>
-              <input className="input" maxLength={120} {...register("college_name")} />
+              <input
+                className="input"
+                maxLength={120}
+                placeholder="Your college full name"
+                {...register("college_name")}
+              />
             </Field>
             <p className="text-xs text-muted-foreground mt-2 font-mono-ui">
               Note: inter-college teams are NOT allowed — all members must be from the same college.
@@ -95,26 +145,71 @@ export function Step1Form({
         )}
       </div>
 
-      <Field label="Category" error={errors.category?.message}>
-        <select className="input" {...register("category")}>
-          <option>Hardware</option>
-          <option>Software</option>
-          <option>Industry Problem Statement</option>
-        </select>
-      </Field>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Problem statement ID" error={errors.problem_statement_id?.message}>
-          <input className="input" maxLength={60} {...register("problem_statement_id")} />
-        </Field>
-        <Field label="Company name" error={errors.company_name?.message}>
-          <input className="input" maxLength={120} {...register("company_name")} />
-        </Field>
+      <div>
+        <span className="block text-xs font-mono-ui uppercase tracking-wider text-muted-foreground mb-2">
+          Category
+        </span>
+        <div className="grid sm:grid-cols-3 gap-2">
+          {categories.map(({ v, icon: Icon, hint }) => {
+            const sel = category === v;
+            return (
+              <button
+                type="button"
+                key={v}
+                onClick={() => setValue("category", v)}
+                className={`p-3 rounded-md border text-left transition-all ${
+                  sel
+                    ? "border-spider bg-spider/10 shadow-[0_0_18px_color-mix(in_oklab,var(--spider)_30%,transparent)]"
+                    : "border-border hover:border-cyan-edge"
+                }`}
+              >
+                <Icon className={`h-5 w-5 ${sel ? "text-spider" : "text-cyan-edge"}`} />
+                <div className="mt-2 font-display text-sm">{v}</div>
+                <div className="text-[11px] text-muted-foreground font-mono-ui mt-0.5">{hint}</div>
+              </button>
+            );
+          })}
+        </div>
+        {errors.category?.message && (
+          <p className="text-xs text-destructive font-mono-ui mt-1">{errors.category.message}</p>
+        )}
       </div>
 
-      <Field label="Problem statement name" error={errors.problem_statement_name?.message}>
-        <input className="input" maxLength={200} {...register("problem_statement_name")} />
-      </Field>
+      {category && (
+        <div className="rounded-md border border-cyan-edge/30 bg-cyan-edge/5 p-4">
+          <div className="font-display text-sm text-cyan-edge mb-3 uppercase tracking-wider">
+            Problem Statement
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Problem statement ID" error={errors.problem_statement_id?.message}>
+              <input
+                className="input"
+                maxLength={60}
+                placeholder="e.g. PS-HW-12"
+                {...register("problem_statement_id")}
+              />
+            </Field>
+            <Field label="Company name" error={errors.company_name?.message}>
+              <input
+                className="input"
+                maxLength={120}
+                placeholder="Sponsoring company"
+                {...register("company_name")}
+              />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Problem statement name" error={errors.problem_statement_name?.message}>
+                <input
+                  className="input"
+                  maxLength={200}
+                  placeholder="Short descriptive title"
+                  {...register("problem_statement_name")}
+                />
+              </Field>
+            </div>
+          </div>
+        </div>
+      )}
 
       <NextBar />
     </form>
@@ -123,13 +218,13 @@ export function Step1Form({
 
 export function NextBar({ label = "Save & continue", disabled }: { label?: string; disabled?: boolean }) {
   return (
-    <div className="sticky bottom-0 -mx-4 sm:mx-0 sm:static border-t border-border/60 bg-background/95 backdrop-blur px-4 py-3 sm:p-0 sm:border-0 sm:bg-transparent sm:backdrop-blur-0">
+    <div className="sticky bottom-0 -mx-4 sm:mx-0 sm:static border-t border-spider/20 bg-background/95 backdrop-blur px-4 py-3 sm:p-0 sm:border-0 sm:bg-transparent sm:backdrop-blur-0">
       <button
         type="submit"
         disabled={disabled}
-        className="w-full sm:w-auto sm:ml-auto sm:flex inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 font-display font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 min-h-[44px]"
+        className="w-full sm:w-auto sm:ml-auto sm:flex inline-flex items-center justify-center gap-2 btn-spider rounded-md px-6 py-3 font-display font-semibold disabled:opacity-50 min-h-[44px]"
       >
-        {label}
+        {label} <ArrowRight className="h-4 w-4" />
       </button>
     </div>
   );

@@ -1,4 +1,6 @@
-export const POC_CONTACTS = [
+export type Coordinator = { name: string; phone: string; role?: string };
+
+export const COORDINATORS: Coordinator[] = [
   { name: "Roshan M", phone: "98410 92274" },
   { name: "Adarsh S", phone: "73059 70106" },
   { name: "Yaaminy S K", phone: "63809 89594" },
@@ -12,6 +14,9 @@ export const POC_CONTACTS = [
   { name: "Surya K", phone: "8754425137", role: "Treasurer" },
 ];
 
-export const PAYMENT_POCS = POC_CONTACTS.filter((c) => c.role === "Treasurer");
+// Backwards-compatible alias used by older imports.
+export const POC_CONTACTS = COORDINATORS;
+
+export const PAYMENT_POCS = COORDINATORS.filter((c) => c.role === "Treasurer");
 
 export const PRICE_PER_MEMBER = 350;

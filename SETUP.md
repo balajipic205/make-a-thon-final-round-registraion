@@ -1,6 +1,6 @@
 # Make-a-Thon 7.0 — Setup Checklist
 
-You picked the **external Supabase project** (`kmxwjurrhaoecnukydqi`). Lovable has no
+You're using the **external Supabase project** (`cnwchucuzheqpzoyuybi`). Lovable has no
 API access to it, so YOU must do the following before the portal works.
 
 ## 1. Run the SQL (one-time)
@@ -8,7 +8,9 @@ API access to it, so YOU must do the following before the portal works.
 Open **Supabase Dashboard → SQL Editor**.
 
 1. Paste the entire contents of `supabase/schema.sql` and run.
-2. Create the 3 storage buckets (next step) **before** running storage_policies.sql.
+2. Paste the entire contents of `supabase/admin_lockout.sql` and run (adds the
+   3-strike / 2-hour admin lockout RPCs).
+3. Create the 3 storage buckets (next step) **before** running storage_policies.sql.
 
 ## 2. Create storage buckets
 
