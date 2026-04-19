@@ -64,10 +64,11 @@ function LoginPage() {
       }
 
       // 3) Look up role to decide where to send the user
-      const { data: profile } = await supabase
-        .from("user_profiles")
+      const { data: adminRole } = await supabase
+        .from("user_roles")
         .select("role")
-        .eq("id", data.user.id)
+        .eq("user_id", data.user.id)
+        .eq("role", "admin")
         .maybeSingle();
 
       // Record success (clears the lockout streak for admins)
@@ -77,7 +78,7 @@ function LoginPage() {
       });
 
       setSubmitting(false);
-      if (profile?.role === "admin") {
+      if (adminRole?.role === "admin") {
         navigate({ to: "/admin/dashboard" });
       } else {
         navigate({ to: "/register-team" });
@@ -106,6 +107,7 @@ function LoginPage() {
                 type="email"
                 autoComplete="email"
                 className="input"
+                placeholder="teamlead@gmail.com"
                 {...register("email")}
               />
             </Field>
@@ -114,6 +116,7 @@ function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 className="input"
+                placeholder="Enter your password"
                 {...register("password")}
               />
             </Field>

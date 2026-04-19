@@ -65,7 +65,8 @@ export function Footer() {
             href="mailto:makeathon@svce.ac.in"
             className="mt-3 inline-flex items-center gap-1.5 font-mono-ui text-xs text-cyan-edge hover:text-foreground transition-colors"
           >
-            <Mail size={13} /> makeathon@svce.ac.in
+            <Mail size={13} />
+            <span>makeathon@svce.ac.in</span>
           </a>
 
           <div className="mt-5 grid grid-cols-3 gap-2">
