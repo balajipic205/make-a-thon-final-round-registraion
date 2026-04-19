@@ -39,14 +39,20 @@ export const Route = createRootRoute({
         content:
           "Final-round registration portal for Make-a-Thon 7.0, the flagship hackathon of the ECE Department, Sri Venkateswara College of Engineering.",
       },
-      { property: "og:title", content: "Make-a-Thon 7.0 — Final Registration" },
-      { property: "og:description", content: "ECE Department · SVCE · Final Registration Portal" },
+      { property: "og:title", content: "Make-a-Thon 7.0 — ECE Department, SVCE" },
+      { property: "og:description", content: "A secure, full-stack portal for final round hackathon registration." },
       { property: "og:type", content: "website" },
       {
         httpEquiv: "Content-Security-Policy",
         content:
           "default-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline'; frame-ancestors 'none';",
       },
+      { name: "twitter:title", content: "Make-a-Thon 7.0 — ECE Department, SVCE" },
+      { name: "description", content: "A secure, full-stack portal for final round hackathon registration." },
+      { name: "twitter:description", content: "A secure, full-stack portal for final round hackathon registration." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/pZIfe54UMSSR4LpFZdncTXa8zud2/social-images/social-1776618750513-MAKEATHON_LOGO.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/pZIfe54UMSSR4LpFZdncTXa8zud2/social-images/social-1776618750513-MAKEATHON_LOGO.webp" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
