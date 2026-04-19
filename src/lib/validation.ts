@@ -8,7 +8,7 @@ const alnumRe = /^[A-Za-z0-9]+$/;
 export const step1Schema = z
   .object({
     team_name: z.string().min(2).max(50).regex(teamNameRe, "Letters, numbers and spaces only"),
-    team_size: z.union([z.literal(4), z.literal(5), z.literal(6), z.string()]).transform((v) => Number(v) as 4 | 5 | 6),
+    team_size: z.number().int().min(4).max(6),
     is_svce: z.boolean(),
     college_name: z.string().max(120).optional().or(z.literal("")),
     category: z.enum(["Hardware", "Software", "Industry Problem Statement"]),

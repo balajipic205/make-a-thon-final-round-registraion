@@ -52,7 +52,7 @@ export function Step1Form({
       </Field>
 
       <Field label="Team size" error={errors.team_size?.message}>
-        <select className="input" {...register("team_size")}>
+        <select className="input" {...register("team_size", { valueAsNumber: true })}>
           <option value={4}>4 members</option>
           <option value={5}>5 members</option>
           <option value={6}>6 members</option>
