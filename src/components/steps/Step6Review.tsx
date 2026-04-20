@@ -19,6 +19,7 @@ export function Step6Review({
   const [confirmed, setConfirmed] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const s1 = state.step1!;
   const s2 = state.step2!;
@@ -33,6 +34,21 @@ export function Step6Review({
     }
     setShowModal(true);
   };
+
+  // When the modal opens, lock body scroll and bring it into the user's view.
+  useEffect(() => {
+    if (!showModal) {
+      document.body.style.overflow = "";
+      return;
+    }
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => {
+      modalRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showModal]);
 
   const whatsapp = import.meta.env.VITE_WHATSAPP_GROUP_URL as string;
 
