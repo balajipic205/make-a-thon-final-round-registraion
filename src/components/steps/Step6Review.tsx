@@ -245,21 +245,84 @@ export function Step6Review({
           ref={modalRef}
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur p-4 overflow-y-auto"
         >
-          <div className="w-full max-w-md panel rounded-2xl p-6 corner-frame my-auto">
-            <h3 className="font-display text-xl">Final confirmation</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Submitting will lock your registration. You won't be able to edit it. Continue?
-            </p>
+          <div className="w-full max-w-lg panel rounded-2xl p-6 corner-frame my-auto">
+            {!submitting && !serverError && (
+              <>
+                <h3 className="font-display text-xl">Final confirmation</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Submitting will lock your registration. You won't be able to edit it. Continue?
+                </p>
+              </>
+            )}
 
             {submitting && (
-              <div className="mt-4 inline-flex items-center gap-2 text-sm text-primary font-mono-ui">
-                <Loader2 className="h-4 w-4 animate-spin" /> Submitting your registration…
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <div>
+                    <div className="font-display text-lg">Finalising your registration…</div>
+                    <div className="text-xs font-mono-ui text-muted-foreground mt-0.5">
+                      Locking team data, members, photos and payment proof. Please don't close this tab.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <Skeleton className="h-3 w-3/4" />
+                  <Skeleton className="h-3 w-2/3" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-3 w-5/6" />
+                </div>
+
+                {showErrorUi && (
+                  <div className="rounded-md border border-amber/40 bg-amber/5 p-3 text-xs font-mono-ui text-amber">
+                    Still working… this is taking longer than usual. Please keep this tab open.
+                  </div>
+                )}
               </div>
             )}
 
-            {serverError && !submitting && (
-              <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive font-mono-ui inline-flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" /> {serverError}
+            {serverError && !submitting && showErrorUi && (
+              <div className="space-y-3">
+                <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive font-mono-ui inline-flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" /> {serverError}
+                </div>
+                <div className="rounded-md border border-border bg-surface-2/50 p-3">
+                  <div className="text-xs font-mono-ui uppercase tracking-wider text-muted-foreground mb-2">
+                    Need help? WhatsApp our team
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    {POC_CONTACTS.slice(0, 4).map((c) => {
+                      const num = c.phone.replace(/\s+/g, "");
+                      return (
+                        <a
+                          key={num}
+                          href={`https://wa.me/91${num}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 hover:border-primary/60 text-sm"
+                        >
+                          <MessageCircle className="h-4 w-4 text-success" />
+                          <div>
+                            <div className="font-medium">{c.name}</div>
+                            <div className="text-[11px] font-mono-ui text-muted-foreground">{c.phone}</div>
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* If error happened but threshold hasn't elapsed yet, keep showing the loader */}
+            {serverError && !submitting && !showErrorUi && (
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <div className="text-sm font-mono-ui text-muted-foreground">
+                  Verifying your submission…
+                </div>
               </div>
             )}
 
@@ -267,27 +330,20 @@ export function Step6Review({
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                disabled={submitting}
+                disabled={submitting || (!!serverError && !showErrorUi)}
                 className="rounded-md border border-border px-4 py-2 hover:bg-surface-2 disabled:opacity-50"
               >
-                {serverError ? "Close" : "Cancel"}
+                {serverError && showErrorUi ? "Close" : "Cancel"}
               </button>
-              <button
-                type="button"
-                onClick={() => onSubmit()}
-                disabled={submitting}
-                className="rounded-md bg-amber px-4 py-2 text-amber-foreground hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-2"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Submitting…
-                  </>
-                ) : serverError ? (
-                  "Retry submission"
-                ) : (
-                  "Yes, submit"
-                )}
-              </button>
+              {!submitting && (!serverError || showErrorUi) && (
+                <button
+                  type="button"
+                  onClick={() => onSubmit()}
+                  className="rounded-md bg-amber px-4 py-2 text-amber-foreground hover:opacity-90 inline-flex items-center gap-2"
+                >
+                  {serverError ? "Retry submission" : "Yes, submit"}
+                </button>
+              )}
             </div>
           </div>
         </div>
