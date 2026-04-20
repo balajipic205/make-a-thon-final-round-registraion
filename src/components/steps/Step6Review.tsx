@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RegState } from "@/store/registration";
 import { POC_CONTACTS } from "@/lib/contacts";
-import { CheckCircle2, MessageCircle, Phone, AlertTriangle } from "lucide-react";
+import { CheckCircle2, MessageCircle, Phone, AlertTriangle, Loader2 } from "lucide-react";
 
 export function Step6Review({
   state,

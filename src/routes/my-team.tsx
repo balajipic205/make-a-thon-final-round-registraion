@@ -204,10 +204,9 @@ function MyTeamPage() {
 
           {/* Payment */}
           <Section title="Payment">
-            <Row label="Transaction ID" value={team.payment_transaction_id} />
-            <Row label="Bank" value={team.payment_bank_name} />
+            <Row label="UPI UTR number" value={team.payment_transaction_id} />
             <Row label="Mobile" value={team.payment_mobile_number} />
-            <Row label="Account holder" value={team.payment_account_holder_name} />
+            <Row label="GPay account holder" value={team.payment_account_holder_name} />
             {ssUrl && (
               <div className="mt-3">
                 <div className="font-mono-ui text-xs text-muted-foreground mb-1">Screenshot</div>
