@@ -50,7 +50,8 @@ export function PSCombobox({ items, value, onChange, onSelect, field, placeholde
       <div className="relative">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
-          className="input pl-8 pr-8"
+          className="input pl-10 pr-8"
+          style={{ paddingLeft: "2.5rem" }}
           value={value}
           onChange={(e) => {
             onChange(e.target.value);
@@ -76,6 +77,7 @@ export function PSCombobox({ items, value, onChange, onSelect, field, placeholde
           }}
           autoComplete="off"
         />
+
         {value && (
           <button
             type="button"

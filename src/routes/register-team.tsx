@@ -153,14 +153,20 @@ function RegisterTeamPage() {
       sessionStorage.setItem("mat7_result", JSON.stringify(data));
       const leaderEmail = reg.step2.members[0]?.college_email ?? "";
       sessionStorage.setItem("mat7_leader_email", leaderEmail);
+      
+      // Clear draft since it's now a team
       reg.reset();
-      await new Promise((r) => setTimeout(r, 400));
+      
+      // Wait for session storage to be robustly written
+      await new Promise((r) => setTimeout(r, 600));
       navigate({ to: "/success" });
     } catch (e: any) {
+      console.error("Submission error:", e);
       setServerError(e.message || "Submission failed. Please try again.");
       setSubmitting(false);
       return;
     }
+
     // Keep `submitting` true through navigation so the modal stays in its
     // loading state and the user never sees a flash of the global error UI.
   };
