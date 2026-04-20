@@ -146,18 +146,23 @@ function RegisterTeamPage() {
       if (data && typeof data === "object" && "success" in data && !(data as { success?: boolean }).success) {
         throw new Error((data as { error?: string }).error || "Submission failed. Please try again.");
       }
-      // success
+      // success — write sessionStorage and give the browser a beat to flush
+      // before navigating, otherwise the success page can race the storage
+      // write and briefly trigger the global error boundary.
       sessionStorage.setItem("mat7_submitted", "1");
       sessionStorage.setItem("mat7_result", JSON.stringify(data));
       const leaderEmail = reg.step2.members[0]?.college_email ?? "";
       sessionStorage.setItem("mat7_leader_email", leaderEmail);
       reg.reset();
+      await new Promise((r) => setTimeout(r, 400));
       navigate({ to: "/success" });
     } catch (e: any) {
       setServerError(e.message || "Submission failed. Please try again.");
-    } finally {
       setSubmitting(false);
+      return;
     }
+    // Keep `submitting` true through navigation so the modal stays in its
+    // loading state and the user never sees a flash of the global error UI.
   };
 
   if (loading) {
