@@ -112,10 +112,9 @@ export function Step6Review({
       </SummaryCard>
 
       <SummaryCard title="Payment">
-        <Row label="Transaction ID" value={s5.payment_transaction_id} />
-        <Row label="Bank" value={s5.payment_bank_name} />
+        <Row label="UPI UTR number" value={s5.payment_transaction_id} />
         <Row label="Mobile" value={s5.payment_mobile_number} />
-        <Row label="Account holder" value={s5.payment_account_holder_name} />
+        <Row label="GPay account holder" value={s5.payment_account_holder_name} />
         {s5.payment_screenshot_url && (
           <div className="mt-2">
             <div className="text-xs font-mono-ui text-muted-foreground mb-1">Screenshot</div>

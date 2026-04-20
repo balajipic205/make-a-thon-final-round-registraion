@@ -105,7 +105,6 @@ export function Step5Payment({
     onNext({
       ...v,
       payment_transaction_id: clean(v.payment_transaction_id),
-      payment_bank_name: clean(v.payment_bank_name),
       payment_mobile_number: clean(v.payment_mobile_number),
       payment_account_holder_name: clean(v.payment_account_holder_name),
       payment_screenshot_url: ssUrl,
@@ -168,13 +167,20 @@ export function Step5Payment({
 
       {/* Form */}
       <div className="space-y-4">
-        <Field label="Transaction ID" error={errors.payment_transaction_id?.message}>
-          <input className="input" placeholder="Enter UPI / bank transaction ID" {...register("payment_transaction_id")} />
+        <Field
+          label="UPI Transaction ID (UTR number)"
+          error={errors.payment_transaction_id?.message}
+          hint="12-digit UPI reference number — visible on the payment confirmation"
+        >
+          <input
+            className="input"
+            inputMode="numeric"
+            maxLength={12}
+            placeholder="123456789012"
+            {...register("payment_transaction_id")}
+          />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Bank name" error={errors.payment_bank_name?.message}>
-            <input className="input" placeholder="For example: SBI / HDFC / GPay" {...register("payment_bank_name")} />
-          </Field>
           <Field label="Mobile number used for payment" error={errors.payment_mobile_number?.message}>
             <input
               className="input"
@@ -184,10 +190,14 @@ export function Step5Payment({
               {...register("payment_mobile_number")}
             />
           </Field>
+          <Field label="GPay account holder name" error={errors.payment_account_holder_name?.message}>
+            <input
+              className="input"
+              placeholder="e.g. Aravind Kumar"
+              {...register("payment_account_holder_name")}
+            />
+          </Field>
         </div>
-        <Field label="Account holder name" error={errors.payment_account_holder_name?.message}>
-          <input className="input" placeholder="Enter account holder name" {...register("payment_account_holder_name")} />
-        </Field>
 
         <div>
           <span className="block text-xs font-mono-ui uppercase tracking-wider text-muted-foreground mb-1">
@@ -223,7 +233,7 @@ export function Step5Payment({
           )}
           <div className="mt-2 inline-flex items-start gap-1.5 text-xs text-amber font-mono-ui">
             <AlertTriangle className="h-3.5 w-3.5 mt-0.5" />
-            Blurred or cropped screenshots will be rejected.
+            NOTE: upload a screenshot with the Transaction ID clearly visible. Blurred or cropped screenshots will be rejected.
           </div>
         </div>
 

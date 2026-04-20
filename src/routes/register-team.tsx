@@ -118,7 +118,7 @@ function RegisterTeamPage() {
         mentor_phone: reg.step3.mentor_phone,
         mentor_email: reg.step3.mentor_email,
         payment_transaction_id: reg.step5.payment_transaction_id,
-        payment_bank_name: reg.step5.payment_bank_name,
+        payment_bank_name: "GPay",
         payment_mobile_number: reg.step5.payment_mobile_number,
         payment_account_holder_name: reg.step5.payment_account_holder_name,
         payment_amount_confirmed: reg.step5.payment_amount_confirmed,
