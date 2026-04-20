@@ -65,12 +65,14 @@ export const step3Schema = z.object({
 export const step5Schema = z.object({
   payment_transaction_id: z
     .string()
-    .min(8, "Min 8 characters")
-    .max(60)
-    .regex(alnumRe, "Alphanumeric only"),
-  payment_bank_name: z.string().min(2).max(80),
+    .length(12, "UPI UTR number must be exactly 12 digits")
+    .regex(/^\d{12}$/, "UPI UTR number must be 12 digits (numbers only)"),
   payment_mobile_number: z.string().regex(phoneRe, "Enter valid 10-digit Indian mobile"),
-  payment_account_holder_name: z.string().min(2).max(80).regex(lettersRe, "Letters only"),
+  payment_account_holder_name: z
+    .string()
+    .min(2, "Account holder name required")
+    .max(80)
+    .regex(lettersRe, "Letters only"),
   payment_amount_confirmed: z.literal(true, { message: "You must confirm the payment" }),
 });
 

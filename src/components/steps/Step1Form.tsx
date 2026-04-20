@@ -3,8 +3,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { step1Schema, type Step1 } from "@/lib/validation";
 import { Field } from "@/routes/login";
 import { clean } from "@/lib/sanitize";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Cpu, Code2, Factory, ArrowRight } from "lucide-react";
+import { PROBLEM_STATEMENTS, getStatementsByTrack } from "@/lib/problemStatements";
+import { PSCombobox } from "@/components/PSCombobox";
 
 export function Step1Form({
   defaultValues,
@@ -29,10 +31,56 @@ export function Step1Form({
   const isSvce = watch("is_svce");
   const teamSize = watch("team_size");
   const category = watch("category");
+  const psId = watch("problem_statement_id") || "";
+  const psName = watch("problem_statement_name") || "";
+  const company = watch("company_name") || "";
+
+  // Local state mirrors so the comboboxes can show the typed text live.
+  const [psIdText, setPsIdText] = useState(psId);
+  const [psNameText, setPsNameText] = useState(psName);
+  const [companyText, setCompanyText] = useState(company);
+
+  useEffect(() => setPsIdText(psId), [psId]);
+  useEffect(() => setPsNameText(psName), [psName]);
+  useEffect(() => setCompanyText(company), [company]);
 
   useEffect(() => {
     if (isSvce === true) setValue("college_name", "");
   }, [isSvce, setValue]);
+
+  // Reset PS fields when category changes so users don't keep stale IDs.
+  useEffect(() => {
+    setValue("problem_statement_id", "");
+    setValue("problem_statement_name", "");
+    setValue("company_name", "");
+    setPsIdText("");
+    setPsNameText("");
+    setCompanyText("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category]);
+
+  const trackItems = useMemo(
+    () => (category ? getStatementsByTrack(category) : PROBLEM_STATEMENTS),
+    [category],
+  );
+  const companies = useMemo(() => {
+    const set = new Set<string>();
+    PROBLEM_STATEMENTS.filter((p) => p.track === "Industry Problem Statement").forEach((p) => {
+      if (p.company) set.add(p.company);
+    });
+    return Array.from(set).sort();
+  }, []);
+
+  const applyPs = (id: string, name: string, comp?: string) => {
+    setValue("problem_statement_id", id, { shouldValidate: true });
+    setValue("problem_statement_name", name, { shouldValidate: true });
+    setPsIdText(id);
+    setPsNameText(name);
+    if (comp) {
+      setValue("company_name", comp, { shouldValidate: true });
+      setCompanyText(comp);
+    }
+  };
 
   const submit = handleSubmit((v) => {
     onNext({
@@ -41,7 +89,7 @@ export function Step1Form({
       college_name: v.is_svce ? "Sri Venkateswara College of Engineering" : clean(v.college_name || ""),
       problem_statement_id: clean(v.problem_statement_id),
       problem_statement_name: clean(v.problem_statement_name),
-      company_name: clean(v.company_name),
+      company_name: clean(v.company_name || ""),
     });
   });
 
@@ -64,7 +112,7 @@ export function Step1Form({
         <input
           className="input"
           maxLength={50}
-          placeholder="Enter your team name"
+          placeholder="e.g. Quantum Coders"
           {...register("team_name")}
         />
       </Field>
@@ -109,7 +157,7 @@ export function Step1Form({
               setValue("college_name", "");
             }}
             className={`min-h-[52px] rounded-md border font-mono-ui text-sm transition-all ${
-              isSvce
+              isSvce === true
                 ? "border-spider text-spider bg-spider/10 shadow-[0_0_18px_color-mix(in_oklab,var(--spider)_30%,transparent)]"
                 : "border-border text-muted-foreground hover:border-cyan-edge"
             }`}
@@ -120,7 +168,7 @@ export function Step1Form({
             type="button"
             onClick={() => setValue("is_svce", false)}
             className={`min-h-[52px] rounded-md border font-mono-ui text-sm transition-all ${
-              !isSvce
+              isSvce === false
                 ? "border-spider text-spider bg-spider/10 shadow-[0_0_18px_color-mix(in_oklab,var(--spider)_30%,transparent)]"
                 : "border-border text-muted-foreground hover:border-cyan-edge"
             }`}
@@ -137,7 +185,7 @@ export function Step1Form({
               <input
                 className="input"
                 maxLength={120}
-                placeholder="Enter your college full name"
+                placeholder="e.g. Anna University"
                 {...register("college_name")}
               />
             </Field>
@@ -183,32 +231,55 @@ export function Step1Form({
           <div className="font-display text-sm text-cyan-edge mb-3 uppercase tracking-wider">
             Problem Statement
           </div>
+          <p className="text-[11px] font-mono-ui text-muted-foreground mb-3">
+            Start typing the ID or name — both fields auto-fill once you pick a problem statement.
+          </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Problem statement ID" error={errors.problem_statement_id?.message}>
-              <input
-                className="input"
-                maxLength={60}
-                placeholder="For example: PS-HW-12"
-                {...register("problem_statement_id")}
+              <PSCombobox
+                items={trackItems}
+                field="id"
+                value={psIdText}
+                onChange={(t) => {
+                  setPsIdText(t);
+                  setValue("problem_statement_id", t);
+                }}
+                onSelect={(p) => applyPs(p.id, p.name, p.company)}
+                placeholder="e.g. HW0101"
               />
             </Field>
             <Field label="Problem statement name" error={errors.problem_statement_name?.message}>
-              <input
-                className="input"
-                maxLength={200}
-                placeholder="Enter the problem statement title"
-                {...register("problem_statement_name")}
+              <PSCombobox
+                items={trackItems}
+                field="name"
+                value={psNameText}
+                onChange={(t) => {
+                  setPsNameText(t);
+                  setValue("problem_statement_name", t);
+                }}
+                onSelect={(p) => applyPs(p.id, p.name, p.company)}
+                placeholder="Search by problem name"
               />
             </Field>
             {category === "Industry Problem Statement" && (
               <div className="sm:col-span-2">
                 <Field label="Company name" error={errors.company_name?.message}>
                   <input
+                    list="company-list"
                     className="input"
                     maxLength={120}
-                    placeholder="Enter sponsoring company name"
-                    {...register("company_name")}
+                    placeholder="e.g. Ford Motor Company"
+                    value={companyText}
+                    onChange={(e) => {
+                      setCompanyText(e.target.value);
+                      setValue("company_name", e.target.value);
+                    }}
                   />
+                  <datalist id="company-list">
+                    {companies.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
                 </Field>
               </div>
             )}

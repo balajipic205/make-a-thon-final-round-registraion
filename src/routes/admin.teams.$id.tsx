@@ -27,6 +27,26 @@ function TeamDetail() {
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [paymentSsUrl, setPaymentSsUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [savingStatus, setSavingStatus] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
+  const updateStatus = async (s: "pending" | "verified" | "rejected") => {
+    if (!team) return;
+    setSavingStatus(true);
+    setStatusMsg(null);
+    const { error } = await supabase
+      .from("teams")
+      .update({ submission_status: s })
+      .eq("id", team.id);
+    setSavingStatus(false);
+    if (error) {
+      setStatusMsg(`Error: ${error.message}`);
+      return;
+    }
+    setTeam({ ...team, submission_status: s });
+    setStatusMsg(`Status updated to "${s}"`);
+    setTimeout(() => setStatusMsg(null), 2500);
+  };
 
   useEffect(() => {
     (async () => {
@@ -160,10 +180,9 @@ function TeamDetail() {
           <div className="mt-4 panel rounded-xl p-5 corner-frame">
             <h2 className="font-display text-lg mb-3">Payment</h2>
             <div className="grid gap-3 sm:grid-cols-2 text-sm">
-              <Info label="Transaction ID" value={team.payment_transaction_id} />
-              <Info label="Bank" value={team.payment_bank_name} />
+              <Info label="UPI UTR number" value={team.payment_transaction_id} />
               <Info label="Mobile" value={team.payment_mobile_number} />
-              <Info label="Holder" value={team.payment_account_holder_name} />
+              <Info label="GPay account holder" value={team.payment_account_holder_name} />
             </div>
             {paymentSsUrl && (
               <div className="mt-3">
@@ -171,6 +190,37 @@ function TeamDetail() {
                 <img src={paymentSsUrl} alt="Payment" className="max-h-96 rounded border border-border" />
               </div>
             )}
+
+            {/* Status update — placed directly below the screenshot for fast review */}
+            <div className="mt-5 rounded-lg border border-primary/30 bg-primary/5 p-4">
+              <div className="font-mono-ui text-xs uppercase tracking-wider text-primary mb-2">
+                Update submission status
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(["pending", "verified", "rejected"] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={savingStatus || team.submission_status === s}
+                    onClick={() => updateStatus(s)}
+                    className={`min-h-[40px] px-4 rounded-md border font-mono-ui text-xs uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                      team.submission_status === s
+                        ? s === "verified"
+                          ? "bg-success text-background border-success"
+                          : s === "rejected"
+                            ? "bg-destructive text-background border-destructive"
+                            : "bg-amber text-amber-foreground border-amber"
+                        : "border-border hover:border-primary text-foreground"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              {statusMsg && (
+                <div className="mt-2 text-xs font-mono-ui text-success">{statusMsg}</div>
+              )}
+            </div>
           </div>
         </div>
       </main>
