@@ -20,6 +20,9 @@ export function Step6Review({
   const [confirmed, setConfirmed] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [showModal, setShowModal] = useState(false);
+  // Suppress error UI for the first ~12s of submission so transient slowness
+  // doesn't show "something went wrong" while the request is still in flight.
+  const [showErrorUi, setShowErrorUi] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const s1 = state.step1!;
@@ -29,10 +32,8 @@ export function Step6Review({
   const s5 = state.step5!;
 
   const handleSubmit = () => {
-    if (honeypot) {
-      // silently reject
-      return;
-    }
+    if (honeypot) return;
+    setShowErrorUi(false);
     setShowModal(true);
   };
 
@@ -50,6 +51,15 @@ export function Step6Review({
       document.body.style.overflow = "";
     };
   }, [showModal]);
+
+  // Only reveal the error block once the request has actually been pending
+  // long enough that we're confident it's a real failure (12 seconds).
+  useEffect(() => {
+    if (!submitting) return;
+    setShowErrorUi(false);
+    const t = window.setTimeout(() => setShowErrorUi(true), 12000);
+    return () => window.clearTimeout(t);
+  }, [submitting]);
 
   const whatsapp = import.meta.env.VITE_WHATSAPP_GROUP_URL as string;
 
