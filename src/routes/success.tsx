@@ -94,101 +94,82 @@ function SuccessPage() {
   useEffect(() => {
     if (stage !== "ready" || !result) return;
 
-    // ── Party popper sound — clean "pop + sparkle" ──
-    const playPartyPop = () => {
+    // ── Pleasant celebration chime — ascending C-E-G major chord ──
+    const playChime = () => {
       try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const now = ctx.currentTime;
-
-        // 1. Sharp POP — short sine burst
-        const pop = ctx.createOscillator();
-        const popGain = ctx.createGain();
-        pop.type = "sine";
-        pop.frequency.setValueAtTime(400, now);
-        pop.frequency.exponentialRampToValueAtTime(80, now + 0.08);
-        popGain.gain.setValueAtTime(0.35, now);
-        popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-        pop.connect(popGain);
-        popGain.connect(ctx.destination);
-        pop.start(now);
-        pop.stop(now + 0.15);
-
-        // 2. Sparkle shower — filtered noise that fades out
-        const len = ctx.sampleRate * 0.6;
-        const buf = ctx.createBuffer(2, len, ctx.sampleRate);
-        for (let ch = 0; ch < 2; ch++) {
-          const d = buf.getChannelData(ch);
-          for (let i = 0; i < len; i++) {
-            d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.2));
-          }
-        }
-        const src = ctx.createBufferSource();
-        src.buffer = buf;
-        const bp = ctx.createBiquadFilter();
-        bp.type = "bandpass";
-        bp.frequency.setValueAtTime(5000, now);
-        bp.Q.setValueAtTime(0.8, now);
-        const nGain = ctx.createGain();
-        nGain.gain.setValueAtTime(0.09, now + 0.05);
-        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-        src.connect(bp);
-        bp.connect(nGain);
-        nGain.connect(ctx.destination);
-        src.start(now + 0.04);
-
-        setTimeout(() => { try { ctx.close(); } catch {} }, 2000);
-      } catch { /* no audio support — ignore */ }
+        // Play a gentle ascending 3-note chime (C5, E5, G5)
+        [523, 659, 784].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, now + i * 0.15);
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(0.18, now + i * 0.15 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.15);
+          osc.stop(now + i * 0.15 + 0.7);
+        });
+        setTimeout(() => { try { ctx.close(); } catch {} }, 3000);
+      } catch { /* no audio — ignore */ }
     };
 
-    // Play party popper sound
-    playPartyPop();
+    // Play the chime
+    playChime();
 
-    // ── Confetti — matching the reference screenshot exactly ──
-    // Big initial burst from center (dense multicolor paper)
+    // ── Confetti with zIndex: 9999 so it shows ABOVE everything ──
+    const colors = ["#E63946", "#00F5FF", "#FFB800", "#d900ff", "#ffffff", "#ff3366"];
+
+    // Big initial center burst
     const fire = (ratio: number, opts: confetti.Options) =>
       confetti({
         ...opts,
         particleCount: Math.floor(200 * ratio),
         origin: { y: 0.4 },
+        zIndex: 9999,
       });
 
-    fire(0.25, { spread: 26, startVelocity: 55, colors: ["#E63946", "#00F5FF", "#FFB800"] });
-    fire(0.2, { spread: 60, colors: ["#E63946", "#00F5FF"] });
-    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ["#FFB800", "#E63946"] });
-    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-    fire(0.1, { spread: 120, startVelocity: 45, colors: ["#00F5FF"] });
+    fire(0.25, { spread: 26, startVelocity: 55, colors });
+    fire(0.2, { spread: 60, colors });
+    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors });
+    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors });
+    fire(0.1, { spread: 120, startVelocity: 45, colors });
 
-    // Second burst after 800ms + second pop sound
+    // Second burst after 800ms
     const t1 = setTimeout(() => {
-      playPartyPop();
-      fire(0.25, { spread: 30, startVelocity: 50, colors: ["#d900ff", "#00F5FF", "#FFB800", "#ffffff"] });
-      fire(0.3, { spread: 80, decay: 0.9, scalar: 0.9, colors: ["#E63946", "#FFB800", "#00F5FF", "#ff3366"] });
-      fire(0.15, { spread: 110, startVelocity: 35, colors: ["#ffffff", "#FFB800"] });
+      fire(0.25, { spread: 30, startVelocity: 50, colors });
+      fire(0.3, { spread: 80, decay: 0.9, scalar: 0.9, colors });
+      fire(0.15, { spread: 110, startVelocity: 35, colors });
     }, 800);
 
-    // Continuous side bursts for 3 seconds
-    const end = Date.now() + 3000;
+    // Continuous side bursts for 4 seconds
+    const end = Date.now() + 4000;
     const interval = window.setInterval(() => {
       if (Date.now() > end) {
         window.clearInterval(interval);
         return;
       }
       try {
-        // Left side burst
+        // Left side
         confetti({
-          particleCount: 30,
+          particleCount: 25,
           angle: 60,
           spread: 55,
           origin: { x: 0, y: 0.65 },
-          colors: ["#E63946", "#00F5FF", "#FFB800", "#d900ff", "#ffffff"],
+          colors,
+          zIndex: 9999,
         });
-        // Right side burst
+        // Right side
         confetti({
-          particleCount: 30,
+          particleCount: 25,
           angle: 120,
           spread: 55,
           origin: { x: 1, y: 0.65 },
-          colors: ["#E63946", "#00F5FF", "#FFB800", "#ff3366", "#ffffff"],
+          colors,
+          zIndex: 9999,
         });
       } catch { /* ignore */ }
     }, 300);
