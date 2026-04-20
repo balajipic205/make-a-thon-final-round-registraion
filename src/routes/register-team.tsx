@@ -15,6 +15,7 @@ import { useReg } from "@/store/registration";
 import { supabase } from "@/lib/supabase";
 import { loadDraft, saveDraft } from "@/lib/drafts";
 import { useAuth } from "@/store/auth";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/register-team")({
   beforeLoad: async () => {
@@ -36,6 +37,153 @@ export const Route = createFileRoute("/register-team")({
   head: () => ({ meta: [{ title: "Team Registration — Make-a-Thon 7.0" }] }),
 });
 
+/** Full-screen skeleton overlay shown immediately on submit to prevent any error flash */
+function SubmittingOverlay() {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        background: "oklch(0.14 0.025 260)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "2rem",
+        padding: "2rem",
+      }}
+    >
+      {/* Header skeleton */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "64px",
+          background: "oklch(0.19 0.028 258)",
+          borderBottom: "1px solid oklch(0.30 0.028 258)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            height: "32px",
+            width: "240px",
+            borderRadius: "8px",
+            background: "oklch(0.23 0.032 258)",
+            animation: "mat7pulse 1.5s ease-in-out infinite",
+          }}
+        />
+      </div>
+
+      {/* Main content skeleton card */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "600px",
+          background: "linear-gradient(180deg, oklch(0.19 0.028 258) 0%, oklch(0.23 0.032 258) 100%)",
+          border: "1px solid oklch(0.30 0.028 258)",
+          borderRadius: "1.25rem",
+          padding: "2rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1.5rem",
+          marginTop: "64px",
+        }}
+      >
+        {/* Spinner + text */}
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <Loader2
+            style={{
+              width: "28px",
+              height: "28px",
+              color: "oklch(0.58 0.22 25)",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <div>
+            <div
+              style={{
+                fontFamily: "Space Grotesk, sans-serif",
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                color: "oklch(0.97 0.01 240)",
+                marginBottom: "4px",
+              }}
+            >
+              Finalising your registration…
+            </div>
+            <div
+              style={{
+                fontFamily: "IBM Plex Mono, monospace",
+                fontSize: "0.75rem",
+                color: "oklch(0.72 0.025 250)",
+              }}
+            >
+              Please don't close this tab.
+            </div>
+          </div>
+        </div>
+
+        {/* Skeleton rows mimicking success page */}
+        {[80, 60, 70, 40, 90, 55].map((w, i) => (
+          <div
+            key={i}
+            style={{
+              height: i === 3 ? "80px" : "14px",
+              width: `${w}%`,
+              borderRadius: "6px",
+              background: "oklch(0.23 0.032 258)",
+              animation: `mat7pulse 1.5s ease-in-out ${i * 0.12}s infinite`,
+            }}
+          />
+        ))}
+
+        {/* Member table skeleton */}
+        <div
+          style={{
+            borderRadius: "8px",
+            border: "1px solid oklch(0.30 0.028 258)",
+            overflow: "hidden",
+          }}
+        >
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                gap: "1rem",
+                padding: "12px 16px",
+                borderBottom: i < 5 ? "1px solid oklch(0.30 0.028 258)" : "none",
+                animation: `mat7pulse 1.5s ease-in-out ${i * 0.1}s infinite`,
+              }}
+            >
+              <div style={{ height: "14px", width: "20px", borderRadius: "4px", background: "oklch(0.26 0.032 258)" }} />
+              <div style={{ height: "14px", flex: 1, borderRadius: "4px", background: "oklch(0.26 0.032 258)" }} />
+              <div style={{ height: "14px", width: "80px", borderRadius: "4px", background: "oklch(0.26 0.032 258)" }} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes mat7pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.45; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function RegisterTeamPage() {
   const { user } = useAuth();
   const reg = useReg();
@@ -44,8 +192,8 @@ function RegisterTeamPage() {
   const [loading, setLoading] = useState(true);
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  // (Resubmission is now blocked at the route guard above.)
+  // navigating = show full-screen skeleton overlay, blocks ALL other UI
+  const [navigating, setNavigating] = useState(false);
 
   // Hydrate from Supabase draft
   useEffect(() => {
@@ -62,7 +210,6 @@ function RegisterTeamPage() {
             step5: d.step5 ?? undefined,
             lastCompletedStep: d.last_completed_step ?? 0,
           });
-          // Resume one step after the last completed one (cap at 6)
           setStep(Math.min((d.last_completed_step ?? 0) + 1, 6));
         }
       } catch {
@@ -102,6 +249,9 @@ function RegisterTeamPage() {
     if (!reg.step1 || !reg.step2 || !reg.step3 || !reg.step4 || !reg.step5) return;
     setSubmitting(true);
     setServerError(null);
+    // ▶ Immediately show the full-screen skeleton overlay.
+    // This prevents the global error boundary from ever flashing.
+    setNavigating(true);
     try {
       const teamPayload = {
         team_name: reg.step1.team_name,
@@ -122,7 +272,7 @@ function RegisterTeamPage() {
         payment_mobile_number: reg.step5.payment_mobile_number,
         payment_account_holder_name: reg.step5.payment_account_holder_name,
         payment_amount_confirmed: reg.step5.payment_amount_confirmed,
-        payment_screenshot_url: reg.step5.payment_screenshot_path, // store storage path
+        payment_screenshot_url: reg.step5.payment_screenshot_path,
       };
       const membersPayload = reg.step2.members.map((m, i) => ({
         full_name: m.full_name,
@@ -146,30 +296,28 @@ function RegisterTeamPage() {
       if (data && typeof data === "object" && "success" in data && !(data as { success?: boolean }).success) {
         throw new Error((data as { error?: string }).error || "Submission failed. Please try again.");
       }
-      // success — write sessionStorage and give the browser a beat to flush
-      // before navigating, otherwise the success page can race the storage
-      // write and briefly trigger the global error boundary.
+      // Write sessionStorage
       sessionStorage.setItem("mat7_submitted", "1");
       sessionStorage.setItem("mat7_result", JSON.stringify(data));
       const leaderEmail = reg.step2.members[0]?.college_email ?? "";
       sessionStorage.setItem("mat7_leader_email", leaderEmail);
-      
-      // Clear draft since it's now a team
       reg.reset();
-      
-      // Wait for session storage to be robustly written
-      await new Promise((r) => setTimeout(r, 600));
+      // Wait for storage to flush, then navigate
+      await new Promise((r) => setTimeout(r, 700));
       navigate({ to: "/success" });
     } catch (e: any) {
       console.error("Submission error:", e);
       setServerError(e.message || "Submission failed. Please try again.");
       setSubmitting(false);
-      return;
+      setNavigating(false); // hide overlay so user sees the error in modal
     }
-
-    // Keep `submitting` true through navigation so the modal stays in its
-    // loading state and the user never sees a flash of the global error UI.
+    // Keep navigating=true so overlay stays visible through navigation
   };
+
+  // Show full-screen overlay the instant navigation starts
+  if (navigating) {
+    return <SubmittingOverlay />;
+  }
 
   if (loading) {
     return (

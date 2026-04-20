@@ -45,7 +45,7 @@ export const Route = createRootRoute({
       {
         httpEquiv: "Content-Security-Policy",
         content:
-          "default-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline'; frame-ancestors 'none';",
+          "default-src 'self'; img-src 'self' data: blob: https://*.supabase.co https://maps.gstatic.com https://maps.googleapis.com; connect-src 'self' https://*.supabase.co https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline'; frame-src https://maps.google.com https://www.google.com; frame-ancestors 'none';",
       },
       { name: "twitter:title", content: "Make-a-Thon 7.0 — ECE Department, SVCE" },
       { name: "description", content: "A secure, full-stack portal for final round hackathon registration." },
