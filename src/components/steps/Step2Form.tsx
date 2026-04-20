@@ -78,9 +78,6 @@ export function Step2Form({
 
   return (
     <form onSubmit={submit} className="space-y-6">
-      <p className="text-xs text-muted-foreground font-mono-ui">
-        Member 1 is the team leader. {isSvce ? "All emails must end with @svce.ac.in." : "All members must be from the same college."}
-      </p>
       {fields.map((f, idx) => {
         const memberErrs = errors.members?.[idx];
         const dept = watch(`members.${idx}.department`);
