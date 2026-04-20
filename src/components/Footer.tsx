@@ -45,6 +45,7 @@ export function Footer() {
           border-top: 2px solid rgba(0, 240, 255, 0.15);
           position: relative;
           overflow: hidden;
+          margin-top: auto;
         }
         .footer-section::before {
           content: '';

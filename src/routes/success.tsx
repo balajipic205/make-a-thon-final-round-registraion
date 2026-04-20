@@ -93,44 +93,110 @@ function SuccessPage() {
 
   useEffect(() => {
     if (stage !== "ready" || !result) return;
-    
-    let interval: number | undefined;
-    try {
-      const fire = (particleRatio: number, opts: confetti.Options) =>
-        confetti({
-          origin: { y: 0.6 },
-          ...opts,
-          particleCount: Math.floor(220 * particleRatio),
-        });
-      fire(0.3, { spread: 26, startVelocity: 60, colors: ["#00F5FF", "#FFB800"] });
-      fire(0.25, { spread: 60, colors: ["#00F5FF", "#FFB800"] });
-      fire(0.4, { spread: 100, decay: 0.91, scalar: 0.9, colors: ["#00F5FF", "#FFB800", "#ffffff", "#ff3366"] });
-      fire(0.15, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ["#00F5FF"] });
-      fire(0.15, { spread: 120, startVelocity: 50, colors: ["#FFB800"] });
 
-      const end = Date.now() + 4000;
-      interval = window.setInterval(() => {
-        if (Date.now() > end) {
-          if (interval) window.clearInterval(interval);
-          return;
+    // ── Party popper sound — clean "pop + sparkle" ──
+    const playPartyPop = () => {
+      try {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const now = ctx.currentTime;
+
+        // 1. Sharp POP — short sine burst
+        const pop = ctx.createOscillator();
+        const popGain = ctx.createGain();
+        pop.type = "sine";
+        pop.frequency.setValueAtTime(400, now);
+        pop.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+        popGain.gain.setValueAtTime(0.35, now);
+        popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        pop.connect(popGain);
+        popGain.connect(ctx.destination);
+        pop.start(now);
+        pop.stop(now + 0.15);
+
+        // 2. Sparkle shower — filtered noise that fades out
+        const len = ctx.sampleRate * 0.6;
+        const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+        for (let ch = 0; ch < 2; ch++) {
+          const d = buf.getChannelData(ch);
+          for (let i = 0; i < len; i++) {
+            d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.2));
+          }
         }
-        try {
-          confetti({
-            particleCount: 40,
-            angle: 60, spread: 65,
-            origin: { x: 0, y: 0.7 },
-            colors: ["#00F5FF", "#FFB800", "#ffffff"],
-          });
-          confetti({
-            particleCount: 40,
-            angle: 120, spread: 65,
-            origin: { x: 1, y: 0.7 },
-            colors: ["#00F5FF", "#FFB800", "#ff3366"],
-          });
-        } catch { /* ignore */ }
-      }, 250);
-    } catch { /* ignore */ }
-    return () => { if (interval) window.clearInterval(interval); };
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const bp = ctx.createBiquadFilter();
+        bp.type = "bandpass";
+        bp.frequency.setValueAtTime(5000, now);
+        bp.Q.setValueAtTime(0.8, now);
+        const nGain = ctx.createGain();
+        nGain.gain.setValueAtTime(0.09, now + 0.05);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        src.connect(bp);
+        bp.connect(nGain);
+        nGain.connect(ctx.destination);
+        src.start(now + 0.04);
+
+        setTimeout(() => { try { ctx.close(); } catch {} }, 2000);
+      } catch { /* no audio support — ignore */ }
+    };
+
+    // Play party popper sound
+    playPartyPop();
+
+    // ── Confetti — matching the reference screenshot exactly ──
+    // Big initial burst from center (dense multicolor paper)
+    const fire = (ratio: number, opts: confetti.Options) =>
+      confetti({
+        ...opts,
+        particleCount: Math.floor(200 * ratio),
+        origin: { y: 0.4 },
+      });
+
+    fire(0.25, { spread: 26, startVelocity: 55, colors: ["#E63946", "#00F5FF", "#FFB800"] });
+    fire(0.2, { spread: 60, colors: ["#E63946", "#00F5FF"] });
+    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ["#FFB800", "#E63946"] });
+    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+    fire(0.1, { spread: 120, startVelocity: 45, colors: ["#00F5FF"] });
+
+    // Second burst after 800ms + second pop sound
+    const t1 = setTimeout(() => {
+      playPartyPop();
+      fire(0.25, { spread: 30, startVelocity: 50, colors: ["#d900ff", "#00F5FF", "#FFB800", "#ffffff"] });
+      fire(0.3, { spread: 80, decay: 0.9, scalar: 0.9, colors: ["#E63946", "#FFB800", "#00F5FF", "#ff3366"] });
+      fire(0.15, { spread: 110, startVelocity: 35, colors: ["#ffffff", "#FFB800"] });
+    }, 800);
+
+    // Continuous side bursts for 3 seconds
+    const end = Date.now() + 3000;
+    const interval = window.setInterval(() => {
+      if (Date.now() > end) {
+        window.clearInterval(interval);
+        return;
+      }
+      try {
+        // Left side burst
+        confetti({
+          particleCount: 30,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.65 },
+          colors: ["#E63946", "#00F5FF", "#FFB800", "#d900ff", "#ffffff"],
+        });
+        // Right side burst
+        confetti({
+          particleCount: 30,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.65 },
+          colors: ["#E63946", "#00F5FF", "#FFB800", "#ff3366", "#ffffff"],
+        });
+      } catch { /* ignore */ }
+    }, 300);
+
+    return () => {
+      clearTimeout(t1);
+      clearInterval(interval);
+    };
   }, [stage, result]);
 
   const copy = async () => {

@@ -14,19 +14,14 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-spider/30 bg-background/80 backdrop-blur">
-      <div className="mx-auto max-w-6xl relative flex items-center justify-between px-4 py-3 min-h-[64px]">
-        {/* Left spacer for layout balance */}
-        <div className="flex-1" />
-
-        {/* Absolutely centered logo */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-          <Link to="/" aria-label="Home" className="block transform hover:scale-105 transition-transform">
-            <Logo />
-          </Link>
-        </div>
+      <div className="mx-auto max-w-6xl flex items-center justify-between px-4 py-3 min-h-[56px]">
+        {/* Left-aligned logo */}
+        <Link to="/" aria-label="Home" className="shrink-0">
+          <Logo size="md" />
+        </Link>
 
         {/* Right-aligned nav */}
-        <nav className="flex-1 flex items-center justify-end gap-2 text-xs font-mono-ui">
+        <nav className="flex items-center gap-2 text-xs font-mono-ui">
           {isAdmin && (
             <Link
               to="/admin/dashboard"
@@ -47,7 +42,7 @@ export function Header() {
               <Link to="/login" className="rounded-md px-3 py-1.5 hover:text-cyan-edge transition-colors">
                 Login
               </Link>
-              <Link to="/register" className="btn-spider rounded-md px-3.5 py-1.5 font-display shadow-glow-spider">
+              <Link to="/register" className="btn-spider rounded-md px-3.5 py-1.5 font-display">
                 Register
               </Link>
             </>
@@ -57,4 +52,3 @@ export function Header() {
     </header>
   );
 }
-

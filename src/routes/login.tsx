@@ -100,7 +100,7 @@ function LoginPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md panel rounded-2xl p-6 corner-frame">
           <div className="flex flex-col items-center text-center mb-6">
-            <Logo />
+            <Logo size="lg" />
             <h1 className="mt-4 font-display text-2xl">Sign in</h1>
             <p className="text-xs text-muted-foreground font-mono-ui mt-1 uppercase tracking-wider">
               Access the registration portal
