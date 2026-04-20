@@ -204,7 +204,8 @@ export function Step6Review({
         <span>I confirm that all the above information is accurate and complete.</span>
       </label>
 
-      {serverError && (
+      {/* Inline error stays only when modal is closed */}
+      {serverError && !showModal && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive font-mono-ui inline-flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 mt-0.5" /> {serverError}
         </div>
@@ -229,28 +230,52 @@ export function Step6Review({
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur p-4">
-          <div className="w-full max-w-md panel rounded-2xl p-6 corner-frame">
+        <div
+          ref={modalRef}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur p-4 overflow-y-auto"
+        >
+          <div className="w-full max-w-md panel rounded-2xl p-6 corner-frame my-auto">
             <h3 className="font-display text-xl">Final confirmation</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               Submitting will lock your registration. You won't be able to edit it. Continue?
             </p>
+
+            {submitting && (
+              <div className="mt-4 inline-flex items-center gap-2 text-sm text-primary font-mono-ui">
+                <Loader2 className="h-4 w-4 animate-spin" /> Submitting your registration…
+              </div>
+            )}
+
+            {serverError && !submitting && (
+              <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive font-mono-ui inline-flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" /> {serverError}
+              </div>
+            )}
+
             <div className="mt-5 flex gap-2 justify-end">
               <button
+                type="button"
                 onClick={() => setShowModal(false)}
-                className="rounded-md border border-border px-4 py-2 hover:bg-surface-2"
+                disabled={submitting}
+                className="rounded-md border border-border px-4 py-2 hover:bg-surface-2 disabled:opacity-50"
               >
-                Cancel
+                {serverError ? "Close" : "Cancel"}
               </button>
               <button
-                onClick={() => {
-                  setShowModal(false);
-                  onSubmit();
-                }}
+                type="button"
+                onClick={() => onSubmit()}
                 disabled={submitting}
-                className="rounded-md bg-amber px-4 py-2 text-amber-foreground hover:opacity-90 disabled:opacity-50"
+                className="rounded-md bg-amber px-4 py-2 text-amber-foreground hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-2"
               >
-                {submitting ? "Submitting..." : "Yes, submit"}
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Submitting…
+                  </>
+                ) : serverError ? (
+                  "Retry submission"
+                ) : (
+                  "Yes, submit"
+                )}
               </button>
             </div>
           </div>
