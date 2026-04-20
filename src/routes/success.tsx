@@ -94,89 +94,86 @@ function SuccessPage() {
   useEffect(() => {
     if (stage !== "ready" || !result) return;
 
-    // ── Pleasant celebration chime — ascending C-E-G major chord ──
-    const playChime = () => {
+    // ── Realistic Firecracker "Sky Shot" sound ──
+    const playSkyShot = () => {
       try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const now = ctx.currentTime;
-        // Play a gentle ascending 3-note chime (C5, E5, G5)
-        [523, 659, 784].forEach((freq, i) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(freq, now + i * 0.15);
-          gain.gain.setValueAtTime(0, now);
-          gain.gain.linearRampToValueAtTime(0.18, now + i * 0.15 + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.6);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(now + i * 0.15);
-          osc.stop(now + i * 0.15 + 0.7);
-        });
-        setTimeout(() => { try { ctx.close(); } catch {} }, 3000);
-      } catch { /* no audio — ignore */ }
+
+        // 1. Initial "Thump/Bang" (Low frequency)
+        const boom = ctx.createOscillator();
+        const boomGain = ctx.createGain();
+        boom.type = "sine";
+        boom.frequency.setValueAtTime(150, now);
+        boom.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+        boomGain.gain.setValueAtTime(0.5, now);
+        boomGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        boom.connect(boomGain);
+        boomGain.connect(ctx.destination);
+        boom.start(now);
+        boom.stop(now + 0.2);
+
+        // 2. Main Sharp Pop (White Noise)
+        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < noiseBuffer.length; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+        const whiteNoise = ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = "bandpass";
+        noiseFilter.frequency.setValueAtTime(1200, now);
+        
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.3, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        
+        whiteNoise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        whiteNoise.start(now);
+
+        // 3. Crackling After-effect (High frequency pulses)
+        for(let i = 0; i < 15; i++) {
+          const t = now + 0.1 + (Math.random() * 0.4);
+          const crackle = ctx.createOscillator();
+          const crackleGain = ctx.createGain();
+          crackle.type = "square";
+          crackle.frequency.setValueAtTime(2000 + (Math.random() * 3000), t);
+          crackleGain.gain.setValueAtTime(0.05, t);
+          crackleGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+          crackle.connect(crackleGain);
+          crackleGain.connect(ctx.destination);
+          crackle.start(t);
+          crackle.stop(t + 0.03);
+        }
+
+        setTimeout(() => { try { ctx.close(); } catch {} }, 2000);
+      } catch { /* ignore */ }
     };
 
-    // Play the chime
-    playChime();
+    // Play the Sky Shot
+    playSkyShot();
 
-    // ── Confetti with zIndex: 9999 so it shows ABOVE everything ──
-    const colors = ["#E63946", "#00F5FF", "#FFB800", "#d900ff", "#ffffff", "#ff3366"];
-
-    // Big initial center burst
+    // ── Confetti — exactly as per provided reference ──
     const fire = (ratio: number, opts: confetti.Options) =>
       confetti({
         ...opts,
         particleCount: Math.floor(200 * ratio),
         origin: { y: 0.4 },
-        zIndex: 9999,
+        zIndex: 9999, // Ensure it's on top
       });
 
-    fire(0.25, { spread: 26, startVelocity: 55, colors });
-    fire(0.2, { spread: 60, colors });
-    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors });
-    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors });
-    fire(0.1, { spread: 120, startVelocity: 45, colors });
-
-    // Second burst after 800ms
-    const t1 = setTimeout(() => {
-      fire(0.25, { spread: 30, startVelocity: 50, colors });
-      fire(0.3, { spread: 80, decay: 0.9, scalar: 0.9, colors });
-      fire(0.15, { spread: 110, startVelocity: 35, colors });
-    }, 800);
-
-    // Continuous side bursts for 4 seconds
-    const end = Date.now() + 4000;
-    const interval = window.setInterval(() => {
-      if (Date.now() > end) {
-        window.clearInterval(interval);
-        return;
-      }
-      try {
-        // Left side
-        confetti({
-          particleCount: 25,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0, y: 0.65 },
-          colors,
-          zIndex: 9999,
-        });
-        // Right side
-        confetti({
-          particleCount: 25,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1, y: 0.65 },
-          colors,
-          zIndex: 9999,
-        });
-      } catch { /* ignore */ }
-    }, 300);
+    fire(0.25, { spread: 26, startVelocity: 55, colors: ["#E63946", "#00F5FF", "#FFB800"] });
+    fire(0.2, { spread: 60, colors: ["#E63946", "#00F5FF"] });
+    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ["#FFB800", "#E63946"] });
+    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+    fire(0.1, { spread: 120, startVelocity: 45, colors: ["#00F5FF"] });
 
     return () => {
-      clearTimeout(t1);
-      clearInterval(interval);
+      // Confetti doesn't need explicit clear in this pattern
     };
   }, [stage, result]);
 
