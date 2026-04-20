@@ -38,18 +38,42 @@ function SuccessPage() {
       navigate({ to: "/" });
       return;
     }
-    // confetti burst
+    // Big celebration burst on mount, then a follow-up "fireworks" loop for ~4s.
     const fire = (particleRatio: number, opts: confetti.Options) =>
       confetti({
         origin: { y: 0.6 },
         ...opts,
-        particleCount: Math.floor(180 * particleRatio),
+        particleCount: Math.floor(220 * particleRatio),
       });
-    fire(0.25, { spread: 26, startVelocity: 55, colors: ["#00F5FF", "#FFB800"] });
-    fire(0.2, { spread: 60, colors: ["#00F5FF", "#FFB800"] });
-    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ["#00F5FF", "#FFB800", "#ffffff"] });
-    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ["#00F5FF"] });
-    fire(0.1, { spread: 120, startVelocity: 45, colors: ["#FFB800"] });
+    fire(0.3, { spread: 26, startVelocity: 60, colors: ["#00F5FF", "#FFB800"] });
+    fire(0.25, { spread: 60, colors: ["#00F5FF", "#FFB800"] });
+    fire(0.4, { spread: 100, decay: 0.91, scalar: 0.9, colors: ["#00F5FF", "#FFB800", "#ffffff", "#ff3366"] });
+    fire(0.15, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: ["#00F5FF"] });
+    fire(0.15, { spread: 120, startVelocity: 50, colors: ["#FFB800"] });
+
+    // Side cannons every 250ms for 4 seconds — full "crackers" feel.
+    const end = Date.now() + 4000;
+    const interval = window.setInterval(() => {
+      if (Date.now() > end) {
+        window.clearInterval(interval);
+        return;
+      }
+      confetti({
+        particleCount: 40,
+        angle: 60,
+        spread: 65,
+        origin: { x: 0, y: 0.7 },
+        colors: ["#00F5FF", "#FFB800", "#ffffff"],
+      });
+      confetti({
+        particleCount: 40,
+        angle: 120,
+        spread: 65,
+        origin: { x: 1, y: 0.7 },
+        colors: ["#00F5FF", "#FFB800", "#ff3366"],
+      });
+    }, 250);
+    return () => window.clearInterval(interval);
   }, [navigate]);
 
   if (!result) return null;
