@@ -6,7 +6,7 @@ export function Stepper({ current, completed }: { current: number; completed: nu
   return (
     <div className="sticky top-[60px] z-20 -mx-4 mb-6 border-b border-spider/20 bg-background/85 backdrop-blur px-4 py-3">
       <div className="mx-auto max-w-3xl">
-        <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="flex items-center justify-center gap-1 flex-wrap sm:flex-nowrap sm:overflow-x-auto">
           {STEPS.map((label, i) => {
             const stepNo = i + 1;
             const isDone = stepNo <= completed;
@@ -16,7 +16,7 @@ export function Stepper({ current, completed }: { current: number; completed: nu
                 <div
                   className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 transition-all ${
                     isActive
-                      ? "border border-spider bg-spider/10 shadow-[0_0_18px_color-mix(in_oklab,var(--spider)_30%,transparent)]"
+                      ? "border border-spider bg-spider/10 shadow-[0_0_18px_color-mix(in_oklab,var(--spider)_30%,transparent)] scale-105"
                       : isDone
                         ? "border border-success/40 bg-surface-2"
                         : "border border-border bg-surface"
@@ -35,7 +35,7 @@ export function Stepper({ current, completed }: { current: number; completed: nu
                   </div>
                   <span
                     className={`text-xs font-mono-ui hidden sm:inline ${
-                      isActive ? "text-foreground" : isDone ? "text-success" : "text-muted-foreground"
+                      isActive ? "text-foreground font-semibold" : isDone ? "text-success" : "text-muted-foreground"
                     }`}
                   >
                     {label}
@@ -48,8 +48,8 @@ export function Stepper({ current, completed }: { current: number; completed: nu
             );
           })}
         </div>
-        <div className="mt-2 sm:hidden font-mono-ui text-xs text-muted-foreground">
-          Step {current} of 6 — <span className="text-spider">{STEPS[current - 1]}</span>
+        <div className="mt-2 sm:hidden text-center font-mono-ui text-xs text-muted-foreground">
+          Step {current} of 6 — <span className="text-spider font-semibold">{STEPS[current - 1]}</span>
         </div>
       </div>
     </div>
