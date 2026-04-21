@@ -94,13 +94,20 @@ function SuccessPage() {
   useEffect(() => {
     if (stage !== "ready" || !result) return;
 
+    // ── Vibration (mobile devices) ──
+    try {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate([80, 60, 120, 60, 200, 80, 80]);
+      }
+    } catch { /* ignore */ }
+
     // ── Realistic Firecracker "Sky Shot" sound ──
     const playSkyShot = () => {
       try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const now = ctx.currentTime;
 
-        // 1. Initial "Thump/Bang" (Low frequency)
+        // 1. Initial low-frequency BOOM
         const boom = ctx.createOscillator();
         const boomGain = ctx.createGain();
         boom.type = "sine";
@@ -113,67 +120,86 @@ function SuccessPage() {
         boom.start(now);
         boom.stop(now + 0.2);
 
-        // 2. Main Sharp Pop (White Noise)
-        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+        // 2. Sharp pop — bandpassed white noise
+        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
         const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < noiseBuffer.length; i++) {
-          output[i] = Math.random() * 2 - 1;
-        }
+        for (let i = 0; i < noiseBuffer.length; i++) output[i] = Math.random() * 2 - 1;
         const whiteNoise = ctx.createBufferSource();
         whiteNoise.buffer = noiseBuffer;
-        
         const noiseFilter = ctx.createBiquadFilter();
         noiseFilter.type = "bandpass";
         noiseFilter.frequency.setValueAtTime(1200, now);
-        
         const noiseGain = ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.3, now);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-        
+        noiseGain.gain.setValueAtTime(0.35, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
         whiteNoise.connect(noiseFilter);
         noiseFilter.connect(noiseGain);
         noiseGain.connect(ctx.destination);
         whiteNoise.start(now);
 
-        // 3. Crackling After-effect (High frequency pulses)
-        for(let i = 0; i < 15; i++) {
-          const t = now + 0.1 + (Math.random() * 0.4);
+        // 3. Crackling after-effect
+        for (let i = 0; i < 25; i++) {
+          const t = now + 0.1 + Math.random() * 0.8;
           const crackle = ctx.createOscillator();
           const crackleGain = ctx.createGain();
           crackle.type = "square";
-          crackle.frequency.setValueAtTime(2000 + (Math.random() * 3000), t);
-          crackleGain.gain.setValueAtTime(0.05, t);
-          crackleGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+          crackle.frequency.setValueAtTime(2000 + Math.random() * 3500, t);
+          crackleGain.gain.setValueAtTime(0.06, t);
+          crackleGain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
           crackle.connect(crackleGain);
           crackleGain.connect(ctx.destination);
           crackle.start(t);
-          crackle.stop(t + 0.03);
+          crackle.stop(t + 0.04);
         }
 
-        setTimeout(() => { try { ctx.close(); } catch {} }, 2000);
+        // 4. Second BOOM (echo) for chain cracker effect
+        const boom2 = ctx.createOscillator();
+        const boom2Gain = ctx.createGain();
+        boom2.type = "sine";
+        boom2.frequency.setValueAtTime(120, now + 0.6);
+        boom2.frequency.exponentialRampToValueAtTime(35, now + 0.75);
+        boom2Gain.gain.setValueAtTime(0.35, now + 0.6);
+        boom2Gain.gain.exponentialRampToValueAtTime(0.01, now + 0.85);
+        boom2.connect(boom2Gain);
+        boom2Gain.connect(ctx.destination);
+        boom2.start(now + 0.6);
+        boom2.stop(now + 0.9);
+
+        setTimeout(() => { try { ctx.close(); } catch { /* ignore */ } }, 3000);
       } catch { /* ignore */ }
     };
 
-    // Play the Sky Shot
     playSkyShot();
 
-    // ── Confetti — exactly as per provided reference ──
-    const fire = (ratio: number, opts: confetti.Options) =>
-      confetti({
-        ...opts,
-        particleCount: Math.floor(200 * ratio),
-        origin: { y: 0.4 },
-        zIndex: 9999, // Ensure it's on top
-      });
+    // ── Multi-color Confetti firework (reference pattern) ──
+    const fire = (ratio: number, opts: confetti.Options) => {
+      try {
+        confetti({
+          ...opts,
+          particleCount: Math.floor(220 * ratio),
+          origin: { y: 0.4 },
+          zIndex: 9999,
+        });
+      } catch { /* ignore */ }
+    };
 
-    fire(0.25, { spread: 26, startVelocity: 55, colors: ["#E63946", "#00F5FF", "#FFB800"] });
-    fire(0.2, { spread: 60, colors: ["#E63946", "#00F5FF"] });
-    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: ["#FFB800", "#E63946"] });
-    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-    fire(0.1, { spread: 120, startVelocity: 45, colors: ["#00F5FF"] });
+    const palette = ["#E63946", "#00F5FF", "#FFB800", "#22C55E", "#A855F7", "#FF6B9D"];
+
+    const burst = () => {
+      fire(0.25, { spread: 26, startVelocity: 55, colors: palette });
+      fire(0.2, { spread: 60, colors: palette });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: palette });
+      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: palette });
+      fire(0.1, { spread: 120, startVelocity: 45, colors: palette });
+    };
+
+    burst();
+    const t1 = window.setTimeout(burst, 700);
+    const t2 = window.setTimeout(burst, 1600);
 
     return () => {
-      // Confetti doesn't need explicit clear in this pattern
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
     };
   }, [stage, result]);
 
