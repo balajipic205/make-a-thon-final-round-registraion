@@ -101,105 +101,120 @@ function SuccessPage() {
       }
     } catch { /* ignore */ }
 
-    // ── Realistic Firecracker "Sky Shot" sound ──
-    const playSkyShot = () => {
+    // ── Pleasant celebration chime (musical, soft, no harsh noise) ──
+    const playCelebration = () => {
       try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const now = ctx.currentTime;
+        const master = ctx.createGain();
+        master.gain.value = 0.25;
+        master.connect(ctx.destination);
 
-        // 1. Initial low-frequency BOOM
-        const boom = ctx.createOscillator();
-        const boomGain = ctx.createGain();
-        boom.type = "sine";
-        boom.frequency.setValueAtTime(150, now);
-        boom.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-        boomGain.gain.setValueAtTime(0.5, now);
-        boomGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-        boom.connect(boomGain);
-        boomGain.connect(ctx.destination);
-        boom.start(now);
-        boom.stop(now + 0.2);
+        // Gentle reverb-ish lowpass
+        const filter = ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.value = 4500;
+        filter.connect(master);
 
-        // 2. Sharp pop — bandpassed white noise
-        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < noiseBuffer.length; i++) output[i] = Math.random() * 2 - 1;
-        const whiteNoise = ctx.createBufferSource();
-        whiteNoise.buffer = noiseBuffer;
-        const noiseFilter = ctx.createBiquadFilter();
-        noiseFilter.type = "bandpass";
-        noiseFilter.frequency.setValueAtTime(1200, now);
-        const noiseGain = ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.35, now);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-        whiteNoise.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(ctx.destination);
-        whiteNoise.start(now);
+        // Cheerful ascending arpeggio: C5 - E5 - G5 - C6 - E6
+        const notes = [
+          { f: 523.25, t: 0.00 },
+          { f: 659.25, t: 0.12 },
+          { f: 783.99, t: 0.24 },
+          { f: 1046.5, t: 0.36 },
+          { f: 1318.5, t: 0.50 },
+        ];
 
-        // 3. Crackling after-effect
-        for (let i = 0; i < 25; i++) {
-          const t = now + 0.1 + Math.random() * 0.8;
-          const crackle = ctx.createOscillator();
-          const crackleGain = ctx.createGain();
-          crackle.type = "square";
-          crackle.frequency.setValueAtTime(2000 + Math.random() * 3500, t);
-          crackleGain.gain.setValueAtTime(0.06, t);
-          crackleGain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
-          crackle.connect(crackleGain);
-          crackleGain.connect(ctx.destination);
-          crackle.start(t);
-          crackle.stop(t + 0.04);
-        }
+        notes.forEach(({ f, t }) => {
+          // Bell tone — sine + soft triangle harmonic
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc1.type = "sine";
+          osc2.type = "triangle";
+          osc1.frequency.value = f;
+          osc2.frequency.value = f * 2;
+          g.gain.setValueAtTime(0, now + t);
+          g.gain.linearRampToValueAtTime(0.35, now + t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, now + t + 1.2);
+          osc1.connect(g);
+          osc2.connect(g);
+          g.connect(filter);
+          osc1.start(now + t);
+          osc2.start(now + t);
+          osc1.stop(now + t + 1.3);
+          osc2.stop(now + t + 1.3);
+        });
 
-        // 4. Second BOOM (echo) for chain cracker effect
-        const boom2 = ctx.createOscillator();
-        const boom2Gain = ctx.createGain();
-        boom2.type = "sine";
-        boom2.frequency.setValueAtTime(120, now + 0.6);
-        boom2.frequency.exponentialRampToValueAtTime(35, now + 0.75);
-        boom2Gain.gain.setValueAtTime(0.35, now + 0.6);
-        boom2Gain.gain.exponentialRampToValueAtTime(0.01, now + 0.85);
-        boom2.connect(boom2Gain);
-        boom2Gain.connect(ctx.destination);
-        boom2.start(now + 0.6);
-        boom2.stop(now + 0.9);
+        // Soft sparkle shimmer at the end
+        [2093, 2637, 3136].forEach((f, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = "sine";
+          o.frequency.value = f;
+          const t = now + 0.7 + i * 0.08;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.12, t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+          o.connect(g);
+          g.connect(filter);
+          o.start(t);
+          o.stop(t + 0.9);
+        });
 
         setTimeout(() => { try { ctx.close(); } catch { /* ignore */ } }, 3000);
       } catch { /* ignore */ }
     };
 
-    playSkyShot();
+    playCelebration();
 
-    // ── Multi-color Confetti firework (reference pattern) ──
+    // ── Multi-color Confetti firework — dedicated full-screen canvas above all UI ──
+    const canvas = document.createElement("canvas");
+    canvas.style.position = "fixed";
+    canvas.style.inset = "0";
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    canvas.style.pointerEvents = "none";
+    canvas.style.zIndex = "2147483647";
+    document.body.appendChild(canvas);
+
+    const myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+
+    const palette = ["#E63946", "#00F5FF", "#FFB800", "#22C55E", "#A855F7", "#FF6B9D"];
+
     const fire = (ratio: number, opts: confetti.Options) => {
       try {
-        confetti({
+        myConfetti({
           ...opts,
-          particleCount: Math.floor(220 * ratio),
-          origin: { y: 0.4 },
-          zIndex: 9999,
+          particleCount: Math.floor(260 * ratio),
+          origin: opts.origin ?? { y: 0.5, x: 0.5 },
         });
       } catch { /* ignore */ }
     };
 
-    const palette = ["#E63946", "#00F5FF", "#FFB800", "#22C55E", "#A855F7", "#FF6B9D"];
-
-    const burst = () => {
-      fire(0.25, { spread: 26, startVelocity: 55, colors: palette });
-      fire(0.2, { spread: 60, colors: palette });
-      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, colors: palette });
-      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: palette });
-      fire(0.1, { spread: 120, startVelocity: 45, colors: palette });
+    const burst = (origin?: { x: number; y: number }) => {
+      fire(0.25, { spread: 26, startVelocity: 55, colors: palette, origin });
+      fire(0.2, { spread: 60, colors: palette, origin });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.9, colors: palette, origin });
+      fire(0.15, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2, colors: palette, origin });
+      fire(0.15, { spread: 120, startVelocity: 45, colors: palette, origin });
     };
 
-    burst();
-    const t1 = window.setTimeout(burst, 700);
-    const t2 = window.setTimeout(burst, 1600);
+    // Center burst
+    burst({ x: 0.5, y: 0.5 });
+    // Side bursts
+    const t1 = window.setTimeout(() => burst({ x: 0.2, y: 0.55 }), 600);
+    const t2 = window.setTimeout(() => burst({ x: 0.8, y: 0.55 }), 1100);
+    const t3 = window.setTimeout(() => burst({ x: 0.5, y: 0.4 }), 1700);
 
     return () => {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
+      window.clearTimeout(t3);
+      setTimeout(() => {
+        try { myConfetti.reset(); } catch { /* ignore */ }
+        try { canvas.remove(); } catch { /* ignore */ }
+      }, 4000);
     };
   }, [stage, result]);
 
