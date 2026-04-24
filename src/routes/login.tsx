@@ -143,11 +143,16 @@ function LoginPage() {
               <LogIn className="h-4 w-4" /> {submitting ? "Signing in..." : "Sign in"}
             </button>
           </form>
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            No account?{" "}
-            <Link to="/register" className="text-cyan-edge hover:underline">
-              Register
+          <div className="mt-4 flex flex-col items-center gap-2 text-sm">
+            <Link to="/forgot-password" className="text-cyan-edge hover:underline font-mono-ui text-xs uppercase tracking-wider">
+              Forgot password?
             </Link>
+            <div className="text-muted-foreground">
+              No account?{" "}
+              <Link to="/register" className="text-cyan-edge hover:underline">
+                Register
+              </Link>
+            </div>
           </div>
         </div>
       </main>
