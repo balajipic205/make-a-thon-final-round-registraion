@@ -93,6 +93,20 @@ export const authLoginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Enter a valid email"),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Min 8 characters").max(72),
+    confirm: z.string(),
+  })
+  .refine((v) => v.password === v.confirm, {
+    path: ["confirm"],
+    message: "Passwords do not match",
+  });
+
 export type Step1 = z.infer<typeof step1Schema>;
 export type Step2 = z.infer<typeof step2Schema>;
 export type Step3 = z.infer<typeof step3Schema>;

@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SuccessRouteImport } from './routes/success'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterTeamRouteImport } from './routes/register-team'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MyTeamRouteImport } from './routes/my-team'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminTeamsIdRouteImport } from './routes/admin.teams.$id'
@@ -21,6 +23,11 @@ import { Route as AdminTeamsIdRouteImport } from './routes/admin.teams.$id'
 const SuccessRoute = SuccessRouteImport.update({
   id: '/success',
   path: '/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterTeamRoute = RegisterTeamRouteImport.update({
@@ -43,6 +50,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,20 +73,24 @@ const AdminTeamsIdRoute = AdminTeamsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/my-team': typeof MyTeamRoute
   '/register': typeof RegisterRoute
   '/register-team': typeof RegisterTeamRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/success': typeof SuccessRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/teams/$id': typeof AdminTeamsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/my-team': typeof MyTeamRoute
   '/register': typeof RegisterRoute
   '/register-team': typeof RegisterTeamRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/success': typeof SuccessRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/teams/$id': typeof AdminTeamsIdRoute
@@ -82,10 +98,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/my-team': typeof MyTeamRoute
   '/register': typeof RegisterRoute
   '/register-team': typeof RegisterTeamRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/success': typeof SuccessRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/teams/$id': typeof AdminTeamsIdRoute
@@ -94,30 +112,36 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/forgot-password'
     | '/login'
     | '/my-team'
     | '/register'
     | '/register-team'
+    | '/reset-password'
     | '/success'
     | '/admin/dashboard'
     | '/admin/teams/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forgot-password'
     | '/login'
     | '/my-team'
     | '/register'
     | '/register-team'
+    | '/reset-password'
     | '/success'
     | '/admin/dashboard'
     | '/admin/teams/$id'
   id:
     | '__root__'
     | '/'
+    | '/forgot-password'
     | '/login'
     | '/my-team'
     | '/register'
     | '/register-team'
+    | '/reset-password'
     | '/success'
     | '/admin/dashboard'
     | '/admin/teams/$id'
@@ -125,10 +149,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   MyTeamRoute: typeof MyTeamRoute
   RegisterRoute: typeof RegisterRoute
   RegisterTeamRoute: typeof RegisterTeamRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SuccessRoute: typeof SuccessRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminTeamsIdRoute: typeof AdminTeamsIdRoute
@@ -141,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/success'
       fullPath: '/success'
       preLoaderRoute: typeof SuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register-team': {
@@ -171,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -197,10 +237,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   MyTeamRoute: MyTeamRoute,
   RegisterRoute: RegisterRoute,
   RegisterTeamRoute: RegisterTeamRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SuccessRoute: SuccessRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminTeamsIdRoute: AdminTeamsIdRoute,
